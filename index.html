@@ -3604,18 +3604,20 @@
   /* "tap a book to look inside" — sits in the gap between the title and the
      case, one line, handwritten, same voice as the doodle beside the
      heading. Never covers a book: it lives above the case, not on it. */
-  .shelf-hint{display:none;}
+   .shelf-hint{display:none;}
   @media(max-width:1179px){
     .shelf-hint{display:block;text-align:center;
       margin:14px auto 0;
       font-family:'Caveat',cursive;font-weight:700;
       font-size:clamp(13px,3.6vw,16px);
       color:var(--pink-ink);
-      opacity:0;transform:translateY(-3px);
-      transition:opacity .4s ease, transform .4s ease;
+      opacity:1;transform:translateY(0);
+      transition:opacity .3s ease, transform .3s ease;
       pointer-events:none;}
     .shelf-hint.show{opacity:1;transform:translateY(0);}
+    .shelf-hint.hidden-after-tap{opacity:0;transform:translateY(-3px);}
   }
+
 
   /* "tap again to open 🕮" — a second, smaller speech bubble that appears
      beside the book's own name tag once that tag has been raised (see
@@ -5043,19 +5045,9 @@
     var shelfHint = document.getElementById('shelfHint');
     var HINT_KEY = 'vanyaShelfHintUsed';
     function dismissHint(){
-      if(shelfHint) shelfHint.classList.remove('show');
+      if(shelfHint) shelfHint.classList.add('hidden-after-tap');
       try{ sessionStorage.setItem(HINT_KEY, '1'); }catch(e){}
     }
-    if(shelfHint){
-      var hintAlreadyUsed = false;
-      try{ hintAlreadyUsed = !!sessionStorage.getItem(HINT_KEY); }catch(e){}
-      if(!hintAlreadyUsed && 'IntersectionObserver' in window){
-        new IntersectionObserver(function(entries){
-          shelfHint.classList.toggle('show', entries[0].isIntersecting);
-        }, { threshold: .35 }).observe(document.querySelector('.shelf-room'));
-      }
-    }
-
     shelfBooks.forEach(function(book){
       book.addEventListener('click', function(e){
         dismissHint();   // any real tap on a book means the affordance landed
