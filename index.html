@@ -3663,6 +3663,146 @@
 
 
 
+
+  /* ══════════════════════════════════════════════════════════════════════
+     FINAL TOUCH SHELF FIX
+     Desktop keeps its original :hover interaction. On touch devices the
+     wrapper's oversized ::after hit area and sticky :hover could repeatedly
+     change stacking/painting while a finger moved over a book. That caused
+     both stray tags and the brief "light behind the shelf" flicker.
+     Touch uses the actual book as the hit target and .tap-armed as the only
+     visual open state.
+     ══════════════════════════════════════════════════════════════════════ */
+  @media (hover:none), (pointer:coarse){
+    /* The expanded hitbox is useful for a mouse, but on touch it overlaps
+       neighbouring books and makes the browser's synthetic hover unstable. */
+    .bk::after{pointer-events:none !important;}
+
+    /* No unarmed touch book may create a raised stacking layer or visual
+       hover repaint. */
+    .bk:not(.tap-armed):hover{
+      z-index:auto !important;
+    }
+
+    .bk:not(.tap-armed):hover .tag{
+      opacity:0 !important;
+      transform:translateX(-50%) !important;
+    }
+
+    .bk:not(.tap-armed):hover .book{
+      box-shadow:.42cqw .84cqw 1.7cqw rgba(44,33,26,.22) !important;
+      will-change:auto;
+    }
+
+    .shelf-zone > .bk:nth-child(4n):not(.tap-armed):hover .book{
+      transform:rotate(.8deg) !important;
+    }
+    .shelf-zone > .bk:nth-child(7n+3):not(.tap-armed):hover .book{
+      transform:rotate(-1.1deg) !important;
+    }
+    .shelf-zone > .bk:nth-child(odd):not(.tap-armed):hover .book{
+      transform:rotate(-1deg) !important;
+    }
+    .shelf-zone > .bk:nth-child(even):not(.tap-armed):hover .book{
+      transform:rotate(1deg) !important;
+    }
+
+    /* The actual tap state remains unchanged visually. */
+    .bk.tap-armed{z-index:5 !important;}
+    .bk.tap-armed .book{
+      will-change:transform;
+      backface-visibility:hidden;
+      -webkit-backface-visibility:hidden;
+    }
+  }
+
+  /* Explicit class fallback for devices/emulators that report a coarse
+     pointer but still synthesize :hover. */
+  html.touch-device .bk::after{pointer-events:none !important;}
+  html.touch-device .bk:not(.tap-armed):hover{z-index:auto !important;}
+  html.touch-device .bk:not(.tap-armed):hover .tag{
+    opacity:0 !important;
+    transform:translateX(-50%) !important;
+  }
+  html.touch-device .bk:not(.tap-armed):hover .book{
+    box-shadow:.42cqw .84cqw 1.7cqw rgba(44,33,26,.22) !important;
+  }
+  html.touch-device .bk.tap-armed{z-index:5 !important;}
+  html.touch-device .bk.tap-armed .tag{
+    opacity:1 !important;
+    transform:translateX(-50%) translateY(-5px) !important;
+  }
+
+</style>
+
+<style id="mobile-viewport-stability-fix">
+/* MOBILE/TABLET VIEWPORT STABILITY
+   Keep the document locked to the visual viewport. This prevents iOS Safari
+   from temporarily exposing a horizontally shifted/clipped layout after
+   touch, sticky-nav interaction, or animated elements finish moving.
+   Desktop is intentionally untouched. */
+@media (max-width:1149px){
+  html{
+    width:100%;
+    max-width:100%;
+    overflow-x:hidden;
+  }
+  body{
+    width:100%;
+    max-width:100%;
+    min-width:0;
+    overflow-x:hidden !important;
+    overscroll-behavior-x:none;
+  }
+  .panel-section,
+  .contact-sec,
+  .container,
+  .contact,
+  .ct,
+  .ct-intro,
+  .ct-stage,
+  .final-cta-visual,
+  .final-cta-text{
+    max-width:100%;
+    min-width:0;
+    box-sizing:border-box;
+  }
+
+  /* Full-bleed decorative elements must never become the document width. */
+  .shelf-room,
+  .library-case,
+  .spread-case,
+  .vinyl-scene{
+    max-width:100%;
+  }
+
+  /* Touch scrolling is vertical only; horizontal overscroll cannot shift the
+     whole page sideways. */
+  body,
+  main,
+  .panel-section{
+    touch-action:pan-y;
+  }
+
+  /* iOS Safari can repaint a transformed child one frame outside its parent.
+     Clip the affected visual chapters without changing their layout. */
+  #contact,
+  #shelf,
+  #process{
+    overflow-x:hidden;
+  }
+
+  /* When the menu locks the body, force the fixed layer to occupy exactly the
+     viewport instead of inheriting a transient iOS layout width. */
+  body.nav-open{
+    left:0 !important;
+    right:0 !important;
+    margin-left:0 !important;
+    margin-right:0 !important;
+    max-width:100vw !important;
+    box-sizing:border-box !important;
+  }
+}
 </style>
 </head>
 <body>
@@ -4506,8 +4646,10 @@
         nav  = document.getElementById('siteNav'),
         list = document.getElementById('navlinks');
     if(!clip || !nav || !list) return;
+
     var scrim = document.getElementById('navScrim');
     var lockedAt = 0, exitTimer = null, pendingTarget = null, pendingHref = '';
+    var scrollRaf = null;
 
     var EXIT = 520;
     try{
@@ -4515,106 +4657,210 @@
       if(v) EXIT = parseFloat(v) * (/ms\s*$/.test(v) ? 1 : 1000);
     }catch(e){}
 
+    function stopSectionScroll(){
+      if(scrollRaf){
+        cancelAnimationFrame(scrollRaf);
+        scrollRaf = null;
+      }
+    }
+
+    /*
+      Mobile/tablet menu navigation uses one deterministic scroll animation.
+      The old implementation unlocked the fixed body, waited for the drawer to
+      finish, then called scrollIntoView(). On phones that produces a brief
+      restoration/repaint at the old section before the browser starts its
+      second scroll animation. This version restores the exact locked position
+      once, then animates directly from that position to the target while the
+      paper drawer is still leaving the screen. There is no second scroll and
+      therefore no back/forth flicker.
+    */
+    function smoothSectionScroll(target){
+      if(!target) return;
+
+      stopSectionScroll();
+
+      var startY = window.scrollY || window.pageYOffset || 0;
+      var rect = target.getBoundingClientRect();
+      var marginTop = 0;
+      try{
+        marginTop = parseFloat(getComputedStyle(target).scrollMarginTop) || 0;
+      }catch(e){}
+
+      var endY = Math.max(0, rect.top + startY - marginTop);
+      var distance = endY - startY;
+
+      if(Math.abs(distance) < 1){
+        window.scrollTo(0, endY);
+        return;
+      }
+
+      var duration = Math.min(920, Math.max(520, 520 + Math.abs(distance) * 0.08));
+      var started = performance.now();
+
+      function ease(t){
+        /* smooth ease-in-out: one continuous movement in the correct direction */
+        return t < .5
+          ? 4 * t * t * t
+          : 1 - Math.pow(-2 * t + 2, 3) / 2;
+      }
+
+      function frame(now){
+        var t = Math.min(1, (now - started) / duration);
+        window.scrollTo(0, startY + distance * ease(t));
+
+        if(t < 1){
+          scrollRaf = requestAnimationFrame(frame);
+        }else{
+          scrollRaf = null;
+          window.scrollTo(0, endY);
+        }
+      }
+
+      scrollRaf = requestAnimationFrame(frame);
+    }
+
     function setOpen(open, destination){
       clearTimeout(exitTimer);
-      nav.classList.toggle('menu-open', open);
+
       if(open){
+        stopSectionScroll();
         pendingTarget = null;
         pendingHref = '';
+        nav.classList.add('menu-open');
         document.body.classList.remove('nav-closing');
         document.body.classList.add('nav-open');
-      } else {
+
+        lockedAt = window.scrollY || 0;
+        document.body.style.top = (-lockedAt) + 'px';
+        document.body.style.position = 'fixed';
+        document.body.style.left = '0';
+        document.body.style.right = '0';
+        document.body.style.width = '100%';
+        document.body.style.maxWidth = '100vw';
+        document.body.style.boxSizing = 'border-box';
+
+        requestAnimationFrame(function(){
+          requestAnimationFrame(function(){
+            document.body.classList.add('nav-shown');
+          });
+        });
+      }else{
         if(destination){
           pendingTarget = destination.target;
           pendingHref = destination.href || '';
         }
+
         document.body.classList.add('nav-closing');
         document.body.classList.remove('nav-shown');
-        /* Keep the page pinned while the sheet leaves. Do NOT restore the old
-           scroll position here — that old restore was the source of the
-           visible flicker/back-then-forward movement. */
-        unlock(false);
-        exitTimer = setTimeout(function(){
-          document.body.classList.remove('nav-open');
-          document.body.classList.remove('nav-closing');
 
-          if(pendingTarget){
-            var target = pendingTarget;
-            var href = pendingHref;
-            pendingTarget = null;
-            pendingHref = '';
-            /* Start exactly one smooth scroll, from the position the reader
-               was looking at when the menu opened, directly to the target. */
+        /*
+          If a destination exists, release the body lock NOW, restore the exact
+          starting position with no animation, and immediately begin ONE
+          controlled scroll toward the destination. The closing sheet/scrim
+          remains above the page during this movement, so the reader sees a
+          continuous upward/downward travel instead of a flash at the old
+          section.
+        */
+        var target = pendingTarget;
+        var href = pendingHref;
+
+        if(target){
+          unlock(true);
+
+          requestAnimationFrame(function(){
             requestAnimationFrame(function(){
-              target.scrollIntoView({behavior:'smooth', block:'start'});
-              try{ if(href) history.replaceState(null, '', href); }catch(err){}
+              smoothSectionScroll(target);
             });
-          }
-        }, EXIT + 30);
+          });
+
+          pendingTarget = null;
+          pendingHref = '';
+          try{ if(href) history.replaceState(null, '', href); }catch(err){}
+
+          exitTimer = setTimeout(function(){
+            document.body.classList.remove('nav-open');
+            document.body.classList.remove('nav-closing');
+          }, EXIT + 30);
+        }else{
+          unlock(true);
+
+          exitTimer = setTimeout(function(){
+            document.body.classList.remove('nav-open');
+            document.body.classList.remove('nav-closing');
+          }, EXIT + 30);
+        }
       }
+
       clip.setAttribute('aria-expanded', String(open));
       clip.setAttribute('aria-label', open ? 'Close the menu' : 'Open the menu');
       if(scrim) scrim.hidden = false;
-
-      if(open){
-        lockedAt = window.scrollY || 0;
-        document.body.style.top = (-lockedAt) + 'px';
-        document.body.style.position = 'fixed';
-        document.body.style.width = '100%';
-        requestAnimationFrame(function(){
-          requestAnimationFrame(function(){ document.body.classList.add('nav-shown'); });
-        });
-      }
     }
 
     function unlock(restore){
       if(document.body.style.position !== 'fixed') return;
+
+      var y = lockedAt;
       document.body.style.position = '';
       document.body.style.top = '';
       document.body.style.width = '';
+
       if(restore){
-        var root = document.documentElement, prev = root.style.scrollBehavior;
+        var root = document.documentElement;
+        var prev = root.style.scrollBehavior;
         root.style.scrollBehavior = 'auto';
-        window.scrollTo(0, lockedAt);
+        window.scrollTo(0, y);
         root.style.scrollBehavior = prev;
       }
     }
 
     if(scrim) scrim.addEventListener('click', function(){ setOpen(false); });
+
     clip.addEventListener('click', function(){
       var open = clip.getAttribute('aria-expanded') !== 'true';
       setOpen(open);
-      try{ if(typeof SoundSystem !== 'undefined') SoundSystem.play('paper-rustle'); }catch(e){}
+      try{
+        if(typeof SoundSystem !== 'undefined') SoundSystem.play('paper-rustle');
+      }catch(e){}
     });
 
     list.addEventListener('click', function(e){
       var a = e.target.closest('a');
       if(!a) return;
+
       var href = a.getAttribute('href') || '';
-      if(href.charAt(0) !== '#'){ setOpen(false); return; }
+      if(href.charAt(0) !== '#'){
+        setOpen(false);
+        return;
+      }
+
       e.preventDefault();
+
       var target = document.getElementById(href.slice(1));
       if(!target) return;
 
-      /* The drawer closes first while the document remains pinned. Only after
-         the drawer is completely gone do we release the lock and begin one
-         native smooth scroll. This makes upward and downward navigation feel
-         like one continuous swipe instead of: old section -> flicker -> target. */
       setOpen(false, {target:target, href:href});
     });
 
     document.addEventListener('keydown', function(e){
       if(e.key === 'Escape' && clip.getAttribute('aria-expanded') === 'true'){
-        setOpen(false); clip.focus();
+        setOpen(false);
+        clip.focus();
       }
     });
 
     document.addEventListener('click', function(e){
-      if(!nav.contains(e.target) && clip.getAttribute('aria-expanded') === 'true') setOpen(false);
+      if(!nav.contains(e.target) && clip.getAttribute('aria-expanded') === 'true'){
+        setOpen(false);
+      }
     });
 
     var wide = window.matchMedia('(min-width:761px)');
-    var onWide = function(m){ if(m.matches) setOpen(false); };
+    var onWide = function(m){
+      if(m.matches){
+        stopSectionScroll();
+        setOpen(false);
+      }
+    };
     if(wide.addEventListener) wide.addEventListener('change', onWide);
     else if(wide.addListener) wide.addListener(onWide);
   })();
@@ -4713,6 +4959,11 @@
 
     var coarse = window.matchMedia &&
       window.matchMedia('(hover:none), (pointer:coarse)').matches;
+
+    /* Give the stylesheet an explicit touch-device switch. This is more
+       reliable than media queries alone in browser/device emulation, where
+       :hover can still be synthesized after a tap. */
+    document.documentElement.classList.toggle('touch-device', !!coarse);
 
     // — the "tap again to open →" bubble, positioned beside whichever
     //   book's tag is currently raised —
@@ -5306,5 +5557,33 @@
 
 </script>
 
+
+<script id="mobile-horizontal-offset-guard">
+(function(){
+  if (!window.matchMedia || !window.matchMedia('(max-width:1149px)').matches) return;
+
+  var correcting = false;
+  function keepAtZero(){
+    if (correcting) return;
+    if (Math.abs(window.scrollX || window.pageXOffset || 0) > 0.5) {
+      correcting = true;
+      window.scrollTo(0, window.scrollY || window.pageYOffset || 0);
+      requestAnimationFrame(function(){ correcting = false; });
+    }
+  }
+
+  window.addEventListener('scroll', keepAtZero, {passive:true});
+  window.addEventListener('orientationchange', function(){
+    requestAnimationFrame(function(){
+      requestAnimationFrame(keepAtZero);
+    });
+  }, {passive:true});
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', function(){
+      requestAnimationFrame(keepAtZero);
+    }, {passive:true});
+  }
+})();
+</script>
 </body>
 </html>
