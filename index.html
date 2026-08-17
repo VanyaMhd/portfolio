@@ -3618,6 +3618,27 @@
     .shelf-hint.hidden-after-tap{opacity:0;transform:translateY(-3px);}
   }
 
+  /* Real touch devices: use pointer capability as the source of truth.
+     Some phones/tablets can report a layout width that does not match the
+     CSS breakpoint (or can request a desktop layout), so max-width alone is
+     not reliable for this mobile-only affordance. */
+  @media (pointer: coarse){
+    .shelf-hint{
+      display:block !important;
+      width:100%;
+      position:relative;
+      z-index:80;
+      visibility:visible !important;
+      opacity:1 !important;
+      transform:none !important;
+    }
+    .shelf-hint.hidden-after-tap{
+      visibility:hidden !important;
+      opacity:0 !important;
+      transform:translateY(-3px) !important;
+    }
+  }
+
 
   /* "tap again to open 🕮" — a second, smaller speech bubble that appears
      beside the book's own name tag once that tag has been raised (see
@@ -3875,7 +3896,7 @@
      second tap is what actually opens it (see the JS comment for the full
      rationale). Repositioned by JS, never shown on desktop. -->
 <div class="tap-hint-bubble" id="tapHintBubble" aria-hidden="true">
-  <span>Tap again to open <span aria-hidden="true">🕮</span></span>
+  <span>Tap again to open <span aria-hidden="true">!</span></span>
 </div>
 <button class="bulb idle" id="themeBulb" type="button" aria-pressed="false"
         aria-label="Turn off the light — switch to the night theme">
@@ -3940,7 +3961,6 @@
       </svg>
     </span>
   </span>
-  <span class="bulb-label">lights off</span>
 </button>
 <!-- ═════════ DARK MODE + BULB TOGGLE — END ═════════ -->
 
@@ -4068,7 +4088,7 @@
          interactive, so this says it in words instead. Fades in once the
          shelf is on screen, fades out for good the first time a book is
          actually tapped. -->
-    <span class="shelf-hint" id="shelfHint" aria-hidden="true">tap a book to look inside <span aria-hidden="true">🕮</span></span>
+    <span class="shelf-hint" id="shelfHint" aria-hidden="true">tap a book to look inside <span aria-hidden="true">!</span></span>
     <div class="shelf-room reveal">
       <span class="sr-wall"  aria-hidden="true"></span>
       <span class="sr-floor" aria-hidden="true"></span>
@@ -5343,7 +5363,6 @@
       bulb.setAttribute('aria-label', night
         ? 'Turn on the light — switch back to the day theme'
         : 'Turn off the light — switch to the night theme');
-      if(label) label.textContent = night ? 'lights on' : 'lights off';
       set(KEY, night ? 'night' : 'day');
     }
 
