@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -74,6 +75,13 @@
   }
   *{box-sizing:border-box;margin:0;padding:0;}
   html{scroll-behavior:smooth;}
+  /* Anchor navigation uses one controlled smooth scroll. Keeping the target
+     offset on the sections prevents the sticky mobile header from making the
+     destination appear to overshoot/settle after the scroll. */
+  @media(max-width:760px){
+    main > section,
+    main > header{scroll-margin-top:76px;}
+  }
   body{
     background-color:var(--cream);
     background-image: radial-gradient(circle, rgba(44,36,32,0.07) 1px, transparent 1px);
@@ -547,7 +555,23 @@
   .shelf-zone > .bk:nth-child(4n) .book{rotate:.8deg;}
   .shelf-zone > .bk:nth-child(7n+3) .book{rotate:-1.1deg;}
   .bk::after{content:"";position:absolute;left:-.42cqw;right:-.42cqw;bottom:0;top:-3.8cqw;}
+  .bk::after{pointer-events:none;}
   .bk:hover,.bk.tap-armed{z-index:5;}
+  /* Touch devices must never inherit the browser's sticky :hover state.
+     The wrapper (.bk) is the hit area, so only the explicit .tap-armed state
+     is allowed to lift a book or reveal its tag on touch. Desktop hover is
+     left completely unchanged. */
+  @media (hover:none), (pointer:coarse){
+    .bk:not(.tap-armed):hover{z-index:auto;}
+    .bk:not(.tap-armed):hover .book{
+      transform:none !important;
+      box-shadow:none;
+    }
+    .bk:not(.tap-armed):hover .tag{
+      opacity:0 !important;
+      transform:translateX(-50%) !important;
+    }
+  }
   /* a book leaning about its middle lifts its own corner off the board; pivot
      it on its foot instead and the base stays planted */
   .book{transform-origin:50% 100%;}
@@ -588,6 +612,36 @@
   .spread-case:focus-visible{outline:var(--focus-ring) solid var(--pink);outline-offset:3px;}
   @keyframes jrnl-settle{0%{transform:scale(1) rotate(0deg);}30%{transform:scale(1.012) rotate(-.3deg);}100%{transform:scale(1) rotate(0deg);}}
   .spread-case.settling{animation:jrnl-settle .6s ease;}
+
+  /* TOUCH INTERACTION — mobile/tablet only
+     Decorative layers should never steal the tap from the physical object. */
+  @media (max-width:1024px) and (pointer:coarse){
+    .cv-envelope-lg{touch-action:manipulation;}
+    .cv-envelope-lg > .cv-env-lg-body,
+    .cv-envelope-lg > .cv-env-lg-flap,
+    .cv-envelope-lg > .cv-seal-lg,
+    .cv-envelope-lg > .cv-note-text{
+      pointer-events:none;
+    }
+    .cv-envelope-lg > .cv-letter-lg{pointer-events:none;}
+    .cv-envelope-lg.opened > .cv-letter-lg{pointer-events:auto;}
+
+    .vinyl-scene{touch-action:manipulation;}
+    .vinyl-scene > *{pointer-events:none;}
+
+    .archive-folder{touch-action:manipulation;}
+    .archive-folder > *{pointer-events:none;}
+    .archive-folder.open .archive-folder-reveal-content,
+    .archive-folder.open .archive-folder-reveal-content *{pointer-events:auto;}
+
+    /* Horizontal swipes advance the project gallery; vertical gestures still scroll. */
+    .gal-stage{
+      touch-action:pan-y;
+      -webkit-user-select:none;
+      user-select:none;
+    }
+  }
+
   @media(prefers-reduced-motion:reduce){
     .spread-case.settling{animation:none;}
   }
@@ -1565,7 +1619,6 @@
     transform:translate(-50%,-50%) scale(calc(var(--gsb) * 1.5));}
   body.night .bulb:hover .shade,body.night .bulb:focus-visible .shade{
     filter:drop-shadow(0 3px 5px var(--lamp-drop)) drop-shadow(0 0 15px rgba(233,196,132,.30));}
-  .bulb:hover .bulb-label,.bulb:focus-visible .bulb-label{opacity:.9;}
   .bulb:focus-visible{outline:var(--focus-ring) solid var(--pink);outline-offset:3px;border-radius:9px;}
 
   /* press — a small tug on the cord, the one cue that works on touch */
@@ -2012,11 +2065,32 @@
   @media(hover:none){
     .archive-folder-hint{opacity:.85;}
     /* Every spine — skill, project and archive — keeps its tag hidden until
-       the reader taps it (.tap-armed). Nothing sits open by default on touch. */
-    .book .tag{opacity:0;transform:translateX(-50%);}
-    .bk.tap-armed .tag{opacity:1;transform:translateX(-50%) translateY(-5px);}
-    .book:focus-visible .tag{opacity:0;transform:translateX(-50%);}
-    .bk.tap-armed .book:focus-visible .tag{opacity:1;transform:translateX(-50%) translateY(-5px);}
+       the reader deliberately taps it. Mobile browsers can keep :hover alive
+       after a touch, so the non-armed override below must win over the desktop
+       .bk:hover selectors as well. */
+    .bk:not(.tap-armed):hover .tag,
+    .bk:not(.tap-armed) .tag{
+      opacity:0 !important;
+      transform:translateX(-50%) !important;
+    }
+    .bk.tap-armed .tag{
+      opacity:1 !important;
+      transform:translateX(-50%) translateY(-5px) !important;
+    }
+
+    /* The same rule applies to the lifted spine itself: only an explicitly
+       armed book may use the hover lift on touch devices. */
+    .bk:not(.tap-armed):hover .book{
+      transform:none !important;
+      box-shadow:none !important;
+    }
+    .bk.tap-armed .book{
+      transform:translateY(-3.4cqw) rotate(-4deg) scale(1.03) !important;
+      box-shadow:4px 18px 26px rgba(44,33,26,.32), inset 2px 0 0 rgba(255,255,255,.3);
+    }
+
+    .book:focus-visible .tag{opacity:0 !important;transform:translateX(-50%) !important;}
+    .bk.tap-armed .book:focus-visible .tag{opacity:1 !important;transform:translateX(-50%) translateY(-5px) !important;}
 
     .bulb .bulb-label{opacity:.85;}
     /* and nothing should stay stuck in a hover state after a tap */
@@ -3737,7 +3811,6 @@
       </svg>
     </span>
   </span>
-  <span class="bulb-label">lights off</span>
 </button>
 <!-- ═════════ DARK MODE + BULB TOGGLE — END ═════════ -->
 
@@ -4566,18 +4639,63 @@
       var href = a.getAttribute('href') || '';
       if(href.charAt(0) !== '#'){ setOpen(false); return; }
       e.preventDefault();
+
       var target = document.getElementById(href.slice(1));
-      /* Close through setOpen so the drawer gets its full slide-out — this used
-         to strip the classes by hand, which cut the animation dead. setOpen also
-         unlocks and restores the old position silently, and the scroll to the
-         target is queued behind it so the two never fight. */
-      setOpen(false);
-      if(target){
+      if(!target) { setOpen(false); return; }
+
+      /*
+        MOBILE NAVIGATION FIX
+
+        The old sequence was:
+          1. start closing the drawer
+          2. immediately unlock the fixed body
+          3. restore the old scroll position
+          4. on the next frame start a smooth scroll to the target
+
+        On an upward navigation this made the browser briefly paint the
+        restored/old position while the drawer was still moving. It looked as
+        if the page was travelling toward the section below before correcting
+        itself.
+
+        Keep the document pinned while the drawer finishes its exit animation.
+        Only after the drawer is completely gone do we release the body lock and
+        start ONE smooth scroll from the actual current position to the target.
+        This makes upward and downward navigation use the exact same motion.
+      */
+
+      clearTimeout(exitTimer);
+      nav.classList.remove('menu-open');
+      document.body.classList.add('nav-closing');
+      document.body.classList.remove('nav-shown');
+
+      clip.setAttribute('aria-expanded', 'false');
+      clip.setAttribute('aria-label', 'Open the menu');
+      if(scrim) scrim.hidden = false;
+
+      var startY = lockedAt;
+      exitTimer = setTimeout(function(){
+        document.body.classList.remove('nav-open');
+        document.body.classList.remove('nav-closing');
+
+        /* Release the fixed-body lock without restoring a competing position. */
+        unlock(false);
+
+        /*
+          Re-establish the exact starting scroll position silently, then begin
+          the one intended smooth movement on the next frame. This prevents the
+          browser from interpolating between two different scroll positions.
+        */
+        var root = document.documentElement;
+        var previousBehavior = root.style.scrollBehavior;
+        root.style.scrollBehavior = 'auto';
+        window.scrollTo(0, startY);
+
         requestAnimationFrame(function(){
+          root.style.scrollBehavior = previousBehavior;
           target.scrollIntoView({behavior:'smooth', block:'start'});
           try{ history.replaceState(null, '', href); }catch(err){}
         });
-      }
+      }, EXIT + 40);
     });
     /* escape closes it and puts focus back on the clip, so a keyboard user is
        never stranded inside a menu they cannot see */
@@ -4622,8 +4740,28 @@
     }
   }
   if(cvEnvelope){
+    var envTouch = {active:false, x:0, y:0, moved:false, suppressClick:false};
+    cvEnvelope.addEventListener('pointerdown', function(e){
+      if(e.pointerType !== 'touch' && e.pointerType !== 'pen') return;
+      if(e.target.closest('#cvDownload')) return;
+      envTouch.active = true;
+      envTouch.x = e.clientX; envTouch.y = e.clientY; envTouch.moved = false;
+    }, {passive:true});
+    cvEnvelope.addEventListener('pointermove', function(e){
+      if(!envTouch.active) return;
+      if(Math.hypot(e.clientX-envTouch.x, e.clientY-envTouch.y) > 10) envTouch.moved = true;
+    }, {passive:true});
+    cvEnvelope.addEventListener('pointerup', function(e){
+      if(!envTouch.active) return;
+      envTouch.active = false;
+      if(envTouch.moved || e.target.closest('#cvDownload')) return;
+      envTouch.suppressClick = true;
+      toggleCvEnvelope();
+      setTimeout(function(){ envTouch.suppressClick = false; }, 450);
+    }, {passive:true});
     cvEnvelope.addEventListener('click', function(e){
       if(e.target.closest('#cvDownload')) return;   // only the link opens the PDF
+      if(envTouch.suppressClick){ envTouch.suppressClick = false; return; }
       toggleCvEnvelope();
     });
     cvEnvelope.addEventListener('keydown', function(e){
@@ -4639,15 +4777,38 @@
     function toggleFolder(){
       const willOpen = !folder.classList.contains('open');
       document.querySelectorAll('.archive-folder.open').forEach(function(other){
-        if(other !== folder) other.classList.remove('open');
+        if(other !== folder){
+          other.classList.remove('open');
+          other.setAttribute('aria-expanded', 'false');
+        }
       });
       folder.classList.toggle('open', willOpen);
       folder.setAttribute('aria-expanded', String(willOpen));
-      // the drawer has its own closing recording, so open and close are a
-      // matched pair rather than a drawer opening and paper rustling shut
       SoundSystem.play(willOpen ? 'folder-open' : 'folder-close');
     }
-    folder.addEventListener('click', toggleFolder);
+
+    var folderTouch = {active:false,x:0,y:0,suppressClick:false};
+    folder.addEventListener('pointerdown', function(e){
+      if(e.pointerType !== 'touch' && e.pointerType !== 'pen') return;
+      folderTouch.active = true;
+      folderTouch.x=e.clientX; folderTouch.y=e.clientY; folderTouch.moved=false;
+    }, {passive:true});
+    folder.addEventListener('pointermove', function(e){
+      if(!folderTouch.active) return;
+      if(Math.hypot(e.clientX-folderTouch.x,e.clientY-folderTouch.y)>10) folderTouch.moved=true;
+    }, {passive:true});
+    folder.addEventListener('pointerup', function(e){
+      if(!folderTouch.active) return;
+      folderTouch.active=false;
+      if(folderTouch.moved) return;
+      folderTouch.suppressClick=true;
+      toggleFolder();
+      setTimeout(function(){ folderTouch.suppressClick=false; },450);
+    }, {passive:true});
+    folder.addEventListener('click', function(e){
+      if(folderTouch.suppressClick){ folderTouch.suppressClick=false; return; }
+      toggleFolder();
+    });
     folder.addEventListener('keydown', function(e){
       if(e.key === 'Enter' || e.key === ' '){
         e.preventDefault();
@@ -4775,7 +4936,22 @@
 
         var touchish = coarse || e.pointerType === 'touch';
         if(!touchish) return;                        // desktop: nothing changes
-        if(armedBook === book){ disarm(); return; }   // second tap: let it through
+
+        if(armedBook === book){
+          /* Second tap on a real link: do NOT disarm first. Removing
+             .tap-armed in the same click event made the book visibly snap
+             between states immediately before the hash navigation, which
+             produced the mobile flicker. Leave the armed state alone and let
+             the browser perform the existing href navigation normally. */
+          if(isLinkBook(book)) return;
+
+          /* Non-link books have nothing to open. A second tap simply closes
+             the revealed tag. */
+          disarm();
+          return;
+        }
+
+        /* First tap: consume the navigation and explicitly arm this book. */
         e.preventDefault();
         arm(book);
       });
@@ -4986,7 +5162,27 @@
       }
       setVinylPlaying(!vinylScene.classList.contains('playing'));
     }
-    vinylScene.addEventListener('click', toggleVinyl);
+    var vinylTouch = {active:false,x:0,y:0,moved:false,suppressClick:false};
+    vinylScene.addEventListener('pointerdown', function(e){
+      if(e.pointerType !== 'touch' && e.pointerType !== 'pen') return;
+      vinylTouch.active=true; vinylTouch.x=e.clientX; vinylTouch.y=e.clientY; vinylTouch.moved=false;
+    }, {passive:true});
+    vinylScene.addEventListener('pointermove', function(e){
+      if(!vinylTouch.active) return;
+      if(Math.hypot(e.clientX-vinylTouch.x,e.clientY-vinylTouch.y)>10) vinylTouch.moved=true;
+    }, {passive:true});
+    vinylScene.addEventListener('pointerup', function(){
+      if(!vinylTouch.active) return;
+      vinylTouch.active=false;
+      if(vinylTouch.moved) return;
+      vinylTouch.suppressClick=true;
+      toggleVinyl();
+      setTimeout(function(){ vinylTouch.suppressClick=false; },450);
+    }, {passive:true});
+    vinylScene.addEventListener('click', function(){
+      if(vinylTouch.suppressClick){ vinylTouch.suppressClick=false; return; }
+      toggleVinyl();
+    });
     vinylScene.addEventListener('keydown', function(e){
       if(e.key === 'Enter' || e.key === ' '){
         e.preventDefault();
@@ -5023,7 +5219,6 @@
     var bulb = document.getElementById('themeBulb');
     if(!bulb) return;
     var body  = document.body,
-        label = bulb.querySelector('.bulb-label'),
         KEY   = 'vanyaTheme';
 
     function get(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }
@@ -5064,7 +5259,6 @@
       bulb.setAttribute('aria-label', night
         ? 'Turn on the light — switch back to the day theme'
         : 'Turn off the light — switch to the night theme');
-      if(label) label.textContent = night ? 'lights on' : 'lights off';
       set(KEY, night ? 'night' : 'day');
     }
 
@@ -5228,6 +5422,34 @@
     }
     prev.addEventListener('click',function(){ go(at-1); });
     next.addEventListener('click',function(){ go(at+1); });
+
+    /* Touch swipe for phones/tablets. Vertical movement remains page scroll;
+       a deliberate horizontal swipe changes the slide once. */
+    var swipeStartX=0, swipeStartY=0, swipeActive=false, swipeMoved=false;
+    stage.addEventListener('touchstart', function(e){
+      if(!e.touches || e.touches.length !== 1) return;
+      var t=e.touches[0];
+      swipeStartX=t.clientX; swipeStartY=t.clientY;
+      swipeActive=true; swipeMoved=false;
+    }, {passive:true});
+    stage.addEventListener('touchmove', function(e){
+      if(!swipeActive || !e.touches || e.touches.length !== 1) return;
+      var t=e.touches[0], dx=t.clientX-swipeStartX, dy=t.clientY-swipeStartY;
+      if(Math.abs(dx)>10 && Math.abs(dx)>Math.abs(dy)) {
+        swipeMoved=true;
+        e.preventDefault();
+      }
+    }, {passive:false});
+    stage.addEventListener('touchend', function(e){
+      if(!swipeActive) return;
+      swipeActive=false;
+      var touch=e.changedTouches && e.changedTouches[0];
+      if(!touch || !swipeMoved) return;
+      var dx=touch.clientX-swipeStartX;
+      if(Math.abs(dx)>=42) go(dx<0 ? at+1 : at-1);
+    }, {passive:true});
+    stage.addEventListener('touchcancel', function(){ swipeActive=false; });
+
     go(0);
   });
 })();
