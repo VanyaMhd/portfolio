@@ -822,8 +822,8 @@
      is still what renders. Everything below only applies once the script
      has marked the visual ready. */
   .proj-visual.gal-ready{gap:9px;}
-  .gal-stage{display:flex;align-items:center;justify-content:center;gap:6px;touch-action:pan-y;user-select:none;-webkit-user-select:none;}
-  .gal-track{position:relative;flex:1 1 auto;min-width:0;display:grid;touch-action:pan-y;}
+  .gal-stage{display:flex;align-items:center;justify-content:center;gap:6px;touch-action:manipulation;user-select:none;-webkit-user-select:none;}
+  .gal-track{position:relative;flex:1 1 auto;min-width:0;display:grid;touch-action:manipulation;}
   .gal-slide{grid-area:1/1;opacity:0;visibility:hidden;transform:translateX(8px);
     transition:opacity .58s cubic-bezier(.33,0,.2,1),
                transform .58s cubic-bezier(.33,0,.2,1),
@@ -2536,7 +2536,7 @@
     /* One source of truth for how long the drawer takes to leave. The script
        reads this so the display:none can never land before the slide finishes. */
     :root{ --nav-exit:520ms; }
-    .nav-links{display:none;position:fixed;top:0;left:0;bottom:0;z-index:200;
+    .nav-links{display:flex;position:fixed;top:0;left:0;bottom:0;z-index:200;
           width:min(82vw,320px);height:100vh;height:100dvh;
           flex-direction:column;align-items:stretch;gap:0;
           overflow-y:auto;-webkit-overflow-scrolling:touch;
@@ -2553,7 +2553,12 @@
              snapped — paper does not stop dead */
           transition:translate var(--nav-exit) cubic-bezier(.4,0,.25,1),
                      opacity calc(var(--nav-exit) * .7) ease;}
-    body.nav-open .nav-links{display:flex;}
+    /* Keep the drawer in the layout at all times. Hiding it with display:none
+       during the closed state could race the class changes on touch devices,
+       leaving only the hamburger's one-line state visible. The drawer is
+       visually and interactively disabled while closed instead. */
+    body:not(.nav-open) .nav-links{pointer-events:none;}
+    body.nav-open .nav-links{pointer-events:auto;}
     body.nav-open.nav-shown .nav-links{translate:0 0;opacity:1;
           /* arriving: slower, with a long settle at the end */
           transition:translate .62s cubic-bezier(.19,1,.28,1),
@@ -3804,7 +3809,7 @@
   body,
   main,
   .panel-section{
-    touch-action:pan-y;
+    touch-action:manipulation;
   }
 
   /* iOS Safari can repaint a transformed child one frame outside its parent.
@@ -3826,7 +3831,7 @@
     overflow:hidden !important;
   }
   html.nav-locked .nav-links{
-    touch-action:pan-y;
+    touch-action:manipulation;
   }
   body.nav-open{
     width:auto !important;
@@ -4812,9 +4817,11 @@
         document.body.classList.add('nav-open');
         lockPage();
 
-        requestAnimationFrame(function(){
-          requestAnimationFrame(function(){ nav.classList.add('nav-shown'); });
-        });
+        /* Show the drawer in the same state change as the body class.
+           Delaying this by two animation frames was fragile on real touch
+           devices: the icon could enter its open state while the drawer was
+           still sitting off-canvas. */
+        nav.classList.add('nav-shown');
       }else{
         if(destination){
           pendingTarget = destination.target;
