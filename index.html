@@ -1347,10 +1347,13 @@
        rules all come from the desktop rules untouched — this block only makes
        them smaller. Same object, held closer.
 
-       Width first: a spread needs horizontal room, so it takes very nearly the
-       whole viewport and gives back only enough margin to read as a book lying
-       on the band rather than a page pasted over it. */
-    .spread-case{max-width:calc(100vw - 20px);margin:20px auto 8px;padding:6px;}
+       Width stays inside the column — 100vw inside a padded .container was
+       wider than the screen and clipped the spread on the right. */
+    .container{padding:0 16px;}
+    #shelf,#process{overflow-x:clip;}
+    .shelf-room{width:100%;max-width:min(408px,100%);}
+    .shelf-room .library-case{width:100%;max-width:100%;margin-left:auto;margin-right:auto;}
+    .spread-case{width:100%;max-width:100%;margin:20px auto 8px;padding:6px;box-sizing:border-box;}
     .jrnl-page{padding:16px 11px 15px 12px;min-height:0;}
 
     /* The binding keeps everything the desktop has — ribbon, tail and all
@@ -1391,7 +1394,8 @@
      131px, which is roughly 22 characters a line — tight, but a journal
      column rather than a broken one. */
   @media(max-width:400px){
-    .spread-case{max-width:calc(100vw - 14px);padding:5px;}
+    .container{padding:0 12px;}
+    .spread-case{padding:5px;}
     .jrnl-page{padding:13px 8px 12px 9px;}
     .jrnl-item{gap:5px;margin-bottom:11px;}
     .jrnl-item p{font-size:9.9px;line-height:1.48;}
@@ -1403,7 +1407,8 @@
     .jrnl-ring{width:10px;height:8px;border-width:1.4px;}
   }
   @media(max-width:340px){
-    .spread-case{max-width:calc(100vw - 10px);padding:4px;}
+    .container{padding:0 10px;}
+    .spread-case{padding:4px;}
     .jrnl-page{padding:11px 6px 10px 7px;}
     .jrnl-item{gap:4px;}
     .jrnl-badge{width:15px;height:15px;font-size:7.6px;}
@@ -2006,13 +2011,12 @@
      all. These are the ones that carry instructions rather than decoration. ── */
   @media(hover:none){
     .archive-folder-hint{opacity:.85;}
-    /* Skill spines aren't links — there's nothing to tap through, so their
-       label stays permanently visible the way it always has. The Projects
-       and Archive spines (the ones that ARE links, `a.book`) are excluded:
-       their tag is now revealed deliberately on first tap — see .tap-armed
-       above and the shelf-discoverability JS — rather than sitting on all
-       the time regardless of whether the shelf is even in view. */
-    .book:not(a) .tag{opacity:1;}
+    /* Every spine — skill, project and archive — keeps its tag hidden until
+       the reader taps it (.tap-armed). Nothing sits open by default on touch. */
+    .book .tag{opacity:0;transform:translateX(-50%);}
+    .bk.tap-armed .tag{opacity:1;transform:translateX(-50%) translateY(-5px);}
+    .book:focus-visible .tag{opacity:0;transform:translateX(-50%);}
+    .bk.tap-armed .book:focus-visible .tag{opacity:1;transform:translateX(-50%) translateY(-5px);}
 
     .bulb .bulb-label{opacity:.85;}
     /* and nothing should stay stuck in a hover state after a tap */
@@ -4681,7 +4685,7 @@
   //     one tag + bubble pairing is ever showing at once.
   // ══════════════════════════════════════════════════════════════════════
   (function(){
-    var shelfBooks = document.querySelectorAll('#shelf a.book');
+    var shelfBooks = document.querySelectorAll('#shelf .book');
     if(!shelfBooks.length) return;
 
     var coarse = window.matchMedia &&
@@ -4692,8 +4696,12 @@
     var bubble = document.getElementById('tapHintBubble');
     var armedBook = null;   // the one book currently "hover-armed", or null
 
+    function isLinkBook(book){
+      return book.tagName === 'A';
+    }
+
     function positionBubble(book){
-      if(!bubble) return;
+      if(!bubble || !isLinkBook(book)) return;
       var tag = book.querySelector('.tag');
       var anchorRect = (tag || book).getBoundingClientRect();
       bubble.classList.remove('show');
@@ -4732,7 +4740,8 @@
       if(armedBook && armedBook !== book) disarm();
       book.closest('.bk').classList.add('tap-armed');
       armedBook = book;
-      positionBubble(book);
+      if(isLinkBook(book)) positionBubble(book);
+      else if(bubble) bubble.classList.remove('show');
     }
 
     // — the "tap a book to look inside" hint —
