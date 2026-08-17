@@ -3617,7 +3617,7 @@
     .shelf-hint.show{opacity:1;transform:translateY(0);}
   }
 
-  /* "tap again to open →" — a second, smaller speech bubble that appears
+  /* "tap again to open 🕮" — a second, smaller speech bubble that appears
      beside the book's own name tag once that tag has been raised (see
      .tap-armed above), rather than a generic banner elsewhere on the page.
      One shared element, repositioned by the JS to sit next to whichever
@@ -3873,7 +3873,7 @@
      second tap is what actually opens it (see the JS comment for the full
      rationale). Repositioned by JS, never shown on desktop. -->
 <div class="tap-hint-bubble" id="tapHintBubble" aria-hidden="true">
-  <span>Tap again to open <span aria-hidden="true">&#8594;</span></span>
+  <span>Tap again to open <span aria-hidden="true">🕮</span></span>
 </div>
 <button class="bulb idle" id="themeBulb" type="button" aria-pressed="false"
         aria-label="Turn off the light — switch to the night theme">
@@ -4978,7 +4978,7 @@
        :hover can still be synthesized after a tap. */
     document.documentElement.classList.toggle('touch-device', !!coarse);
 
-    // — the "tap again to open →" bubble, positioned beside whichever
+    // — the "tap again to open 🕮" bubble, positioned beside whichever
     //   book's tag is currently raised —
     var bubble = document.getElementById('tapHintBubble');
     var armedBook = null;   // the one book currently "hover-armed", or null
