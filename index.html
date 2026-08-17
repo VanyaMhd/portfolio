@@ -3761,6 +3761,150 @@
     transform:translateX(-50%) translateY(-5px) !important;
   }
 
+
+/* FINAL MOBILE HEADER / DRAWER FIX
+   Keep the controls viewport-fixed on real phones and tablets.
+   The drawer is an independent fixed sheet above the scrim, so opening it
+   cannot leave only the one-line icon and shadow behind. Desktop unchanged. */
+@media (max-width:1149px){
+  nav.site-nav{
+    position:fixed !important;
+    top:0 !important;
+    left:0 !important;
+    right:0 !important;
+    width:100% !important;
+    min-height:54px !important;
+    height:54px !important;
+    padding:0 !important;
+    margin:0 !important;
+    display:flex !important;
+    align-items:flex-start !important;
+    justify-content:flex-start !important;
+    z-index:3000 !important;
+    background:transparent !important;
+    box-shadow:none !important;
+    pointer-events:none !important;
+  }
+
+  nav.site-nav.scrolled{
+    background:rgba(245,240,232,.82) !important;
+    -webkit-backdrop-filter:blur(12px) saturate(1.04) !important;
+    backdrop-filter:blur(12px) saturate(1.04) !important;
+    box-shadow:0 1px 0 rgba(44,33,26,.08) !important;
+  }
+
+  body.night nav.site-nav.scrolled{
+    background:rgba(41,36,31,.82) !important;
+    box-shadow:0 1px 0 rgba(255,232,196,.08) !important;
+  }
+
+  nav.site-nav .clip-btn{
+    position:relative !important;
+    z-index:3003 !important;
+    pointer-events:auto !important;
+    flex:0 0 auto !important;
+  }
+
+  /* The drawer itself owns its viewport layer. Do not depend on nav-shown
+     for visibility: nav-open is the actual open state. */
+  nav.site-nav .nav-links{
+    position:fixed !important;
+    top:0 !important;
+    left:0 !important;
+    bottom:auto !important;
+    right:auto !important;
+    width:min(82vw,320px) !important;
+    height:100vh !important;
+    height:100dvh !important;
+    max-height:100dvh !important;
+    margin:0 !important;
+    z-index:3002 !important;
+    display:flex !important;
+    visibility:hidden !important;
+    opacity:0 !important;
+    pointer-events:none !important;
+    transform:translate3d(-105%,0,0) !important;
+    translate:none !important;
+    will-change:transform,opacity !important;
+    transition:transform .52s cubic-bezier(.22,1,.36,1),
+               opacity .18s ease,
+               visibility 0s linear .52s !important;
+  }
+
+  body.nav-open nav.site-nav .nav-links,
+  body.nav-open.nav-shown nav.site-nav .nav-links{
+    visibility:visible !important;
+    opacity:1 !important;
+    pointer-events:auto !important;
+    transform:translate3d(0,0,0) !important;
+    translate:none !important;
+    transition:transform .52s cubic-bezier(.22,1,.36,1),
+               opacity .18s ease,
+               visibility 0s linear 0s !important;
+  }
+
+  body.nav-closing nav.site-nav .nav-links{
+    visibility:visible !important;
+    opacity:0 !important;
+    pointer-events:none !important;
+    transform:translate3d(-105%,0,0) !important;
+    translate:none !important;
+    transition:transform .48s cubic-bezier(.33,0,.25,1),
+               opacity .18s ease,
+               visibility 0s linear .48s !important;
+  }
+
+  nav.site-nav .nav-links li{
+    transform:translate3d(-12px,0,0) !important;
+    translate:none !important;
+  }
+
+  body.nav-open nav.site-nav .nav-links li{
+    transform:translate3d(0,0,0) !important;
+    translate:none !important;
+  }
+
+  /* Scrim must be below both the sheet and the fixed header. */
+  .nav-scrim{
+    position:fixed !important;
+    inset:0 !important;
+    z-index:2990 !important;
+    display:block !important;
+    background:var(--nav-scrim) !important;
+  }
+
+  .nav-scrim[hidden]{
+    display:none !important;
+  }
+
+  body.nav-open .nav-scrim{
+    opacity:1 !important;
+    pointer-events:auto !important;
+  }
+
+  /* The lamp is also viewport-anchored. */
+  .bulb{
+    position:fixed !important;
+    z-index:3001 !important;
+  }
+
+  body.nav-open .bulb{
+    z-index:3001 !important;
+  }
+
+  body.nav-open .lamp-hint{
+    opacity:0 !important;
+    pointer-events:none !important;
+  }
+
+  /* The page must not horizontally shift when the drawer opens. */
+  html.nav-locked,
+  html.nav-locked body{
+    overflow:hidden !important;
+    width:100% !important;
+  }
+}
+
 </style>
 
 <style id="mobile-viewport-stability-fix">
@@ -3864,6 +4008,83 @@
     }
     .bk.tap-armed .book{
       transform:translateY(-3.4cqw) rotate(-4deg) scale(1.03) !important;
+    }
+  }
+
+
+  /* FINAL MOBILE NAV STABILITY FIX
+     Keep the mobile controls visually anchored with the old frosted band, and
+     use transform/visibility for the drawer so iOS Safari cannot leave only
+     the one-line menu icon and scrim visible. Desktop is untouched. */
+  @media (max-width:1149px){
+    nav.site-nav{
+      background:transparent !important;
+      box-shadow:none;
+      z-index:1000;
+    }
+    nav.site-nav.scrolled{
+      background:rgba(245,240,232,.80) !important;
+      -webkit-backdrop-filter:blur(10px);
+      backdrop-filter:blur(10px);
+      box-shadow:0 1px 0 rgba(44,33,26,.07);
+    }
+    body.night nav.site-nav.scrolled{
+      background:rgba(41,36,31,.80) !important;
+      box-shadow:0 1px 0 rgba(255,232,196,.07);
+    }
+
+    .nav-scrim{
+      z-index:900 !important;
+    }
+
+    .nav-links{
+      z-index:1100 !important;
+      opacity:1;
+      visibility:hidden;
+      translate:none !important;
+      transform:translate3d(-102%,0,0);
+      will-change:transform;
+      transition:transform var(--nav-exit) cubic-bezier(.4,0,.25,1),
+                 opacity .2s ease,
+                 visibility 0s linear var(--nav-exit);
+    }
+
+    body.nav-open.nav-shown .nav-links{
+      opacity:1 !important;
+      visibility:visible;
+      transform:translate3d(0,0,0);
+      transition:transform .62s cubic-bezier(.19,1,.28,1),
+                 opacity .2s ease,
+                 visibility 0s linear 0s;
+    }
+
+    body.nav-closing .nav-links{
+      opacity:0 !important;
+      visibility:visible;
+      transform:translate3d(-106%,0,0);
+      transition:transform var(--nav-exit) cubic-bezier(.33,0,.25,1),
+                 opacity calc(var(--nav-exit) - 40ms) ease-out,
+                 visibility 0s linear var(--nav-exit);
+    }
+
+    /* The menu rows use transform instead of the CSS translate longhand on
+       touch devices; this avoids Safari's intermittent compositing bug. */
+    .nav-links li{
+      transform:translate3d(-12px,0,0);
+      translate:none !important;
+    }
+    /* The drawer itself is the open-state source of truth. Do not require
+       nav-shown for the rows: on some touch browsers that class can arrive
+       a frame later than nav-open, leaving a perfectly visible paper sheet
+       with invisible links. */
+    body.nav-open .nav-links li{
+      opacity:1 !important;
+      transform:translate3d(0,0,0);
+      translate:none !important;
+    }
+    body.nav-closing .nav-links li{
+      transform:translate3d(-8px,0,0);
+      translate:none !important;
     }
   }
 </style>
@@ -4909,9 +5130,12 @@
 
   const siteNav = document.getElementById('siteNav');
   if(siteNav){
-    window.addEventListener('scroll', ()=>{
-      siteNav.classList.toggle('scrolled', window.scrollY > 20);
-    }, {passive:true});
+    var syncNavScrolled = function(){
+      siteNav.classList.toggle('scrolled', (window.scrollY || window.pageYOffset || 0) > 1);
+    };
+    window.addEventListener('scroll', syncNavScrolled, {passive:true});
+    window.addEventListener('pageshow', syncNavScrolled);
+    syncNavScrolled();
   }
 
 
