@@ -3885,6 +3885,144 @@
     }
   }
 </style>
+
+<style id="touch-single-tap-stability">
+/*
+  TOUCH SINGLE-TAP STABILITY
+  On iOS/iPadOS and some Android browsers, a CSS :hover state can be
+  synthesized on the first touch. If that hover state changes the interactive
+  element, the browser can treat the first touch as "hover" and the second as
+  activation. Desktop hover remains completely unchanged because everything
+  below is limited to coarse/no-hover pointers.
+
+  The site's actual click handlers stay the same. This only removes the
+  desktop hover layer from touch devices so one touch reaches the existing
+  click handler immediately.
+*/
+@media (hover: none), (pointer: coarse){
+  /* Navigation */
+  .nav-links a:hover{
+    opacity:.78 !important;
+    color:var(--ink) !important;
+  }
+
+  /* General buttons / Get in Touch */
+  .btn:hover,
+  .btn:nth-of-type(even):hover{
+    transform:none !important;
+    box-shadow:inherit !important;
+  }
+  .btn:hover .ul,
+  .btn:hover .ul path{
+    opacity:0 !important;
+  }
+  .btn.dark:hover{
+    background:linear-gradient(168deg,#FDF8EC,#F3EADA) !important;
+  }
+  body.night .btn.dark:hover{
+    background:linear-gradient(168deg,#463A31,#342C27) !important;
+  }
+
+  /* LinkedIn / GitHub / Email */
+  .follow .icons a:hover{
+    background:var(--paper) !important;
+    border-color:var(--taupe) !important;
+    color:var(--ink) !important;
+    transform:none !important;
+  }
+  body.night .follow .icons a:hover{
+    background:var(--paper) !important;
+    border-color:var(--taupe) !important;
+    color:var(--ink) !important;
+  }
+
+  /* Projects / device mockups */
+  .project:hover{
+    box-shadow:5px 5px 0 rgba(44,36,32,.85) !important;
+  }
+  .phone-col:hover,
+  .laptop:hover{
+    transform:none !important;
+  }
+
+  /* Slideshow arrows and dots */
+  .gal-nav:hover{
+    background:transparent !important;
+    color:var(--muted) !important;
+  }
+  body.night .gal-nav:hover{
+    background:transparent !important;
+    color:var(--muted) !important;
+  }
+  .gal-dot:hover{
+    opacity:.5 !important;
+  }
+  .gal-dot[aria-current="true"]:hover{
+    opacity:1 !important;
+  }
+
+  /* CV envelope / PDF link */
+  .cv-envelope-lg:hover{
+    transform:none !important;
+  }
+  .cv-envelope-lg:hover .cv-env-lg-body{
+    box-shadow:0 22px 40px rgba(44,33,26,.15),
+               0 3px 8px rgba(44,33,26,.08),
+               inset 0 0 0 1px rgba(255,255,255,.15) !important;
+  }
+  .cv-letter-lg .cv-click:hover{
+    background:transparent !important;
+    color:inherit !important;
+  }
+  body.night .cv-letter-lg .cv-click:hover{
+    background:transparent !important;
+  }
+
+  /* Archive folders */
+  .archive-folder:hover .archive-folder-visual{
+    transform:none !important;
+  }
+  .archive-folder:hover .archive-folder-hint{
+    opacity:.65 !important;
+    color:var(--muted) !important;
+  }
+  body.night .archive-folder.open:hover .archive-folder-hint{
+    opacity:1 !important;
+    color:#D8B87A !important;
+  }
+
+  /* Vinyl */
+  .vinyl-scene:hover{
+    transform:rotate(-3deg) !important;
+  }
+
+  /* Remove the remaining touch-only hover repaint from journal/typewriter
+     objects without affecting their desktop hover interactions. */
+  .spread-case:hover,
+  .jrnl-page:hover,
+  .typewriter-wrap:hover .typewriter-paper{
+    translate:none !important;
+    rotate:none !important;
+  }
+
+  /* All actual controls use the browser's immediate-manipulation gesture. */
+  .clip-btn,
+  .nav-links a,
+  .cv-envelope-lg,
+  .cv-click,
+  .archive-folder,
+  .vinyl-scene,
+  .btn,
+  .follow .icons a,
+  .gal-nav,
+  .gal-dot,
+  a.book{
+    touch-action:manipulation;
+    -webkit-tap-highlight-color:transparent;
+  }
+}
+</style>
+
 </head>
 <body>
 <!-- ═════════ DARK MODE + BULB TOGGLE — START (delete to remove) ═════════ -->
