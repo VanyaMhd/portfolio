@@ -947,8 +947,6 @@
   .cv-tagline{font-family:'Caveat',cursive;font-weight:700;font-size:23px;color:var(--ink);margin-bottom:64px;position:relative;display:inline-block;}
   
   .cv-envelope-lg{position:relative;width:330px;height:231px;margin:0 auto;cursor:pointer;display:block;transition:transform .3s ease;}
-  /* Touch activation: keep one physical tap as one interaction on mobile Safari. */
-  .cv-envelope-lg,.cv-letter-lg .cv-click,.archive-folder,.vinyl-scene,#ctOpen,.icons a,.book{touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
   .cv-envelope-lg:hover{transform:translateY(-4px) rotate(-.4deg);}
   .cv-envelope-lg:focus-visible{outline:var(--focus-ring) solid var(--pink);outline-offset:3px;border-radius:10px;}
   .cv-env-lg-body{position:absolute;inset:0;background:radial-gradient(circle at 20% 15%, rgba(255,255,255,.35), transparent 40%),radial-gradient(circle at 82% 78%, rgba(255,255,255,.2), transparent 45%),linear-gradient(158deg,#e8c0bd 0%,var(--pink-soft) 52%,#d9a8a3 100%);border:1.5px solid rgba(44,33,26,.18);border-radius:9px;z-index:1;box-shadow:0 22px 40px rgba(44,33,26,.15),0 3px 8px rgba(44,33,26,.08),inset 0 0 0 1px rgba(255,255,255,.15);transition:box-shadow .3s ease;overflow:hidden;}
@@ -964,7 +962,7 @@
   /* generous hit area — a small target here just closes the envelope by mistake */
   .cv-letter-lg .cv-click{font-family:'Caveat',cursive;font-weight:700;font-size:18px;color:var(--pink);
             text-decoration:underline;text-underline-offset:4px;text-decoration-thickness:1.5px;
-            display:inline-block;padding:12px 20px;margin-top:2px;border-radius:8px;cursor:pointer;
+            display:inline-block;padding:9px 16px;margin-top:2px;border-radius:8px;cursor:pointer;
             transition:background .2s ease, color .2s ease;}
   .cv-letter-lg .cv-click:hover{background:var(--pink-soft);color:var(--wood-dark);}
   .cv-letter-lg .cv-click:focus-visible{outline:var(--focus-ring) solid var(--pink);outline-offset:2px;}
@@ -3600,6 +3598,24 @@
   body.night .sr-item .sr-cast{background:radial-gradient(ellipse at 50% 50%,rgba(0,0,0,.48) 0%,rgba(0,0,0,.22) 54%,transparent 76%);}
   body.night .sr-i-hang img,body.night .sr-i-portrait img{filter:drop-shadow(0 10px 16px rgba(0,0,0,.5));}
 
+  /* Touch interaction guard: keep taps as single, immediate activations.
+     This affects interaction timing only; it does not change the visual design
+     or pinch-to-zoom behavior of the page. */
+  @media (pointer: coarse){
+    .clip-btn,
+    .nav-links a,
+    .cv-envelope-lg,
+    .cv-click,
+    .archive-folder,
+    .vinyl-scene,
+    .btn,
+    .icons a,
+    .gal-nav,
+    .gal-dot{
+      touch-action: manipulation;
+    }
+  }
+
   /* ══════════════════════════════════════════════════════════════════════
      MOBILE SHELF DISCOVERABILITY
      Desktop says "these are interactive" with a cursor; touch has no such
@@ -3847,13 +3863,6 @@
 }
 
   @media (hover:none), (pointer:coarse){
-    /* Every intentional tap target opts out of double-tap gesture heuristics.
-       This is the shared fix; individual controls only define their action. */
-    .cv-envelope-lg,.archive-folder,.vinyl-scene,.icons a,#ctOpen,#cvDownload,
-    .gal-nav,.gal-dot,.book,.tw-keywell{
-      touch-action:manipulation;
-      -webkit-tap-highlight-color:transparent;
-    }
     /* Touch has no hover state. Do not merely override opacity after :hover;
        define the mobile resting state directly so Safari has nothing to paint. */
     .bk:not(.tap-armed) .book .tag{
@@ -4534,12 +4543,12 @@
   <div class="container">
     <div class="cv-section-inner reveal">
       <p class="cv-tagline">˗ˏˋ a little paper trail of my work ˎˊ˗</p>
-      <div class="cv-envelope-lg" id="cvEnvelope" role="button" tabindex="0" aria-label="Open envelope to reveal CV download" aria-expanded="false">
+      <div class="cv-envelope-lg" id="cvEnvelope" role="button" tabindex="0" aria-label="Open envelope to reveal CV download">
         <div class="cv-env-lg-body"></div>
         <p class="cv-note-text">a little note for you :)</p>
         <div class="cv-letter-lg">
           <p class="cv-my-cv">my CV<span class="heart">&#10140;</span></p>
-          <a class="cv-click" id="cvDownload" href="Vanya_Mohammed_CV.pdf" target="_blank" rel="noopener" download="Vanya_Mohammed_CV.pdf">click here to view / download</a>
+          <a class="cv-click" id="cvDownload" href="Vanya-Mohammed-CV.pdf" target="_blank" rel="noopener" download>click here to view / download</a>
         </div>
         <div class="cv-env-lg-flap"></div>
         <div class="cv-seal-lg"><div class="cv-seal-lg-flower"><span></span><span></span><span></span><span></span><span></span><i></i></div></div>
@@ -4830,7 +4839,7 @@
            Delaying this by two animation frames was fragile on real touch
            devices: the icon could enter its open state while the drawer was
            still sitting off-canvas. */
-        nav.classList.add('nav-shown');
+        document.body.classList.add('nav-shown');
       }else{
         if(destination){
           pendingTarget = destination.target;
@@ -4838,7 +4847,7 @@
         }
 
         document.body.classList.add('nav-closing');
-        nav.classList.remove('nav-shown');
+        document.body.classList.remove('nav-shown');
 
         var target = pendingTarget;
         var href = pendingHref;
@@ -4908,7 +4917,7 @@
       if(m.matches){
         stopSectionScroll();
         unlockPage();
-        nav.classList.remove('nav-shown');
+        document.body.classList.remove('nav-shown');
         document.body.classList.remove('nav-open','nav-closing');
       }
     };
@@ -4941,29 +4950,9 @@
       SoundSystem.play('paper-rustle');
     }
   }
-  function bindSingleTouch(el, action){
-    if(!el) return;
-    var touchHandledUntil = 0;
-    el.addEventListener('pointerup', function(e){
-      if(e.pointerType !== 'touch') return;
-      e.preventDefault();
-      e.stopPropagation();
-      touchHandledUntil = Date.now() + 700;
-      action(e);
-    }, {passive:false});
-    el.addEventListener('click', function(e){
-      if(Date.now() < touchHandledUntil){
-        e.preventDefault();
-        e.stopPropagation();
-        return;
-      }
-      action(e);
-    });
-  }
-
   if(cvEnvelope){
-    bindSingleTouch(cvEnvelope, function(e){
-      if(e.target && e.target.closest && e.target.closest('#cvDownload')) return;
+    cvEnvelope.addEventListener('click', function(e){
+      if(e.target.closest('#cvDownload')) return;   // only the link opens the PDF
       toggleCvEnvelope();
     });
     cvEnvelope.addEventListener('keydown', function(e){
@@ -4987,7 +4976,7 @@
       // matched pair rather than a drawer opening and paper rustling shut
       SoundSystem.play(willOpen ? 'folder-open' : 'folder-close');
     }
-    bindSingleTouch(folder, toggleFolder);
+    folder.addEventListener('click', toggleFolder);
     folder.addEventListener('keydown', function(e){
       if(e.key === 'Enter' || e.key === ' '){
         e.preventDefault();
@@ -5105,36 +5094,14 @@
       try{ sessionStorage.setItem(HINT_KEY, '1'); }catch(e){}
     }
     shelfBooks.forEach(function(book){
-      var touchHandledUntil=0;
-      book.addEventListener('pointerup', function(e){
-        var touchish = coarse || e.pointerType === 'touch';
-        if(!touchish) return;
-        e.preventDefault();
-        e.stopPropagation();
-        touchHandledUntil=Date.now()+700;
-        dismissHint();
-        if(armedBook === book){
-          disarm();
-          // Project/archive books keep their established two-stage mobile
-          // affordance: the first tap reveals the tag; the second tap follows
-          // the actual link. This second activation is now handled directly
-          // from the touch event rather than waiting for Safari's synthetic click.
-          if(book.tagName === 'A' && book.href) {
-            if(book.target === '_blank') window.open(book.href,'_blank','noopener');
-            else window.location.href=book.href;
-          }
-          return;
-        }
-        arm(book);
-      }, {passive:false});
       book.addEventListener('click', function(e){
-        dismissHint();
-        if(Date.now()<touchHandledUntil){
-          e.preventDefault();
-          e.stopPropagation();
-          return;
-        }
-        if(coarse) return;
+        dismissHint();   // any real tap on a book means the affordance landed
+
+        var touchish = coarse || e.pointerType === 'touch';
+        if(!touchish) return;                        // desktop: nothing changes
+        if(armedBook === book){ disarm(); return; }   // second tap: let it through
+        e.preventDefault();
+        arm(book);
       });
     });
 
@@ -5343,7 +5310,7 @@
       }
       setVinylPlaying(!vinylScene.classList.contains('playing'));
     }
-    bindSingleTouch(vinylScene, toggleVinyl);
+    vinylScene.addEventListener('click', toggleVinyl);
     vinylScene.addEventListener('keydown', function(e){
       if(e.key === 'Enter' || e.key === ' '){
         e.preventDefault();
@@ -5351,33 +5318,6 @@
       }
     });
   }
-
-  // Native anchors normally handle touch correctly, but these links sit in
-  // animated/transform-heavy areas of the page. Give them the same explicit
-  // single-touch activation path so the first tap is never spent on a
-  // synthesized hover state. The desktop click path remains unchanged.
-  function bindTouchLink(el){
-    if(!el) return;
-    var handledUntil=0;
-    el.addEventListener('pointerup', function(e){
-      if(e.pointerType !== 'touch') return;
-      e.preventDefault();
-      e.stopPropagation();
-      handledUntil=Date.now()+700;
-      var href=el.getAttribute('href')||'';
-      if(!href) return;
-      if(href.indexOf('mailto:')===0){ window.location.href=href; return; }
-      if(el.target === '_blank') window.open(el.href,'_blank','noopener');
-      else window.location.href=el.href;
-    }, {passive:false});
-    el.addEventListener('click', function(e){
-      if(Date.now()<handledUntil){
-        e.preventDefault();
-        e.stopPropagation();
-      }
-    });
-  }
-  document.querySelectorAll('.icons a, #ctOpen, #cvDownload').forEach(bindTouchLink);
 
   // typewriter — soft key click on tap, gently debounced
   const twKeywell = document.getElementById('twKeywell');
@@ -5607,28 +5547,20 @@
       btns.forEach(function(b,k){ b.setAttribute('aria-current', k===at?'true':'false'); });
     }
 
-    /* Native click remains the desktop path. `touch-action:manipulation` on
-       the buttons removes the mobile double-tap delay without changing how
-       a mouse click behaves. */
-    var recentTouchButton = 0;
-    function touchButton(dir,e){
-      if(e.pointerType !== 'touch') return;
+    /* One activation path for the arrows.
+       The old touch path listened to pointerup AND click and then had to
+       suppress one of them. On some tablet/mobile browsers that can become
+       timing-sensitive. Buttons already have touch-action:manipulation, so a
+       normal click is immediate and is the only handler needed. */
+    prev.addEventListener('click',function(e){
       e.preventDefault();
       e.stopPropagation();
-      recentTouchButton = Date.now() + 500;
-      go(at + dir);
-    }
-    if(window.PointerEvent){
-      prev.addEventListener('pointerup',function(e){ touchButton(-1,e); });
-      next.addEventListener('pointerup',function(e){ touchButton(1,e); });
-    }
-    prev.addEventListener('click',function(e){
-      if(Date.now() < recentTouchButton) { e.preventDefault(); e.stopPropagation(); return; }
-      e.preventDefault(); e.stopPropagation(); go(at-1);
+      go(at-1);
     });
     next.addEventListener('click',function(e){
-      if(Date.now() < recentTouchButton) { e.preventDefault(); e.stopPropagation(); return; }
-      e.preventDefault(); e.stopPropagation(); go(at+1);
+      e.preventDefault();
+      e.stopPropagation();
+      go(at+1);
     });
 
     /* Touch / tablet swipe. Horizontal movement changes slides; vertical
