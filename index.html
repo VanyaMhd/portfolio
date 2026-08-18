@@ -947,6 +947,8 @@
   .cv-tagline{font-family:'Caveat',cursive;font-weight:700;font-size:23px;color:var(--ink);margin-bottom:64px;position:relative;display:inline-block;}
   
   .cv-envelope-lg{position:relative;width:330px;height:231px;margin:0 auto;cursor:pointer;display:block;transition:transform .3s ease;}
+  /* Touch activation: keep one physical tap as one interaction on mobile Safari. */
+  .cv-envelope-lg,.cv-letter-lg .cv-click,.archive-folder,.vinyl-scene,#ctOpen,.icons a,.book{touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
   .cv-envelope-lg:hover{transform:translateY(-4px) rotate(-.4deg);}
   .cv-envelope-lg:focus-visible{outline:var(--focus-ring) solid var(--pink);outline-offset:3px;border-radius:10px;}
   .cv-env-lg-body{position:absolute;inset:0;background:radial-gradient(circle at 20% 15%, rgba(255,255,255,.35), transparent 40%),radial-gradient(circle at 82% 78%, rgba(255,255,255,.2), transparent 45%),linear-gradient(158deg,#e8c0bd 0%,var(--pink-soft) 52%,#d9a8a3 100%);border:1.5px solid rgba(44,33,26,.18);border-radius:9px;z-index:1;box-shadow:0 22px 40px rgba(44,33,26,.15),0 3px 8px rgba(44,33,26,.08),inset 0 0 0 1px rgba(255,255,255,.15);transition:box-shadow .3s ease;overflow:hidden;}
@@ -962,7 +964,7 @@
   /* generous hit area — a small target here just closes the envelope by mistake */
   .cv-letter-lg .cv-click{font-family:'Caveat',cursive;font-weight:700;font-size:18px;color:var(--pink);
             text-decoration:underline;text-underline-offset:4px;text-decoration-thickness:1.5px;
-            display:inline-block;padding:9px 16px;margin-top:2px;border-radius:8px;cursor:pointer;
+            display:inline-block;padding:12px 20px;margin-top:2px;border-radius:8px;cursor:pointer;
             transition:background .2s ease, color .2s ease;}
   .cv-letter-lg .cv-click:hover{background:var(--pink-soft);color:var(--wood-dark);}
   .cv-letter-lg .cv-click:focus-visible{outline:var(--focus-ring) solid var(--pink);outline-offset:2px;}
@@ -3761,150 +3763,6 @@
     transform:translateX(-50%) translateY(-5px) !important;
   }
 
-
-/* FINAL MOBILE HEADER / DRAWER FIX
-   Keep the controls viewport-fixed on real phones and tablets.
-   The drawer is an independent fixed sheet above the scrim, so opening it
-   cannot leave only the one-line icon and shadow behind. Desktop unchanged. */
-@media (max-width:1149px){
-  nav.site-nav{
-    position:fixed !important;
-    top:0 !important;
-    left:0 !important;
-    right:0 !important;
-    width:100% !important;
-    min-height:54px !important;
-    height:54px !important;
-    padding:0 !important;
-    margin:0 !important;
-    display:flex !important;
-    align-items:flex-start !important;
-    justify-content:flex-start !important;
-    z-index:3000 !important;
-    background:transparent !important;
-    box-shadow:none !important;
-    pointer-events:none !important;
-  }
-
-  nav.site-nav.scrolled{
-    background:rgba(245,240,232,.82) !important;
-    -webkit-backdrop-filter:blur(12px) saturate(1.04) !important;
-    backdrop-filter:blur(12px) saturate(1.04) !important;
-    box-shadow:0 1px 0 rgba(44,33,26,.08) !important;
-  }
-
-  body.night nav.site-nav.scrolled{
-    background:rgba(41,36,31,.82) !important;
-    box-shadow:0 1px 0 rgba(255,232,196,.08) !important;
-  }
-
-  nav.site-nav .clip-btn{
-    position:relative !important;
-    z-index:3003 !important;
-    pointer-events:auto !important;
-    flex:0 0 auto !important;
-  }
-
-  /* The drawer itself owns its viewport layer. Do not depend on nav-shown
-     for visibility: nav-open is the actual open state. */
-  nav.site-nav .nav-links{
-    position:fixed !important;
-    top:0 !important;
-    left:0 !important;
-    bottom:auto !important;
-    right:auto !important;
-    width:min(82vw,320px) !important;
-    height:100vh !important;
-    height:100dvh !important;
-    max-height:100dvh !important;
-    margin:0 !important;
-    z-index:3002 !important;
-    display:flex !important;
-    visibility:hidden !important;
-    opacity:0 !important;
-    pointer-events:none !important;
-    transform:translate3d(-105%,0,0) !important;
-    translate:none !important;
-    will-change:transform,opacity !important;
-    transition:transform .52s cubic-bezier(.22,1,.36,1),
-               opacity .18s ease,
-               visibility 0s linear .52s !important;
-  }
-
-  body.nav-open nav.site-nav .nav-links,
-  body.nav-open.nav-shown nav.site-nav .nav-links{
-    visibility:visible !important;
-    opacity:1 !important;
-    pointer-events:auto !important;
-    transform:translate3d(0,0,0) !important;
-    translate:none !important;
-    transition:transform .52s cubic-bezier(.22,1,.36,1),
-               opacity .18s ease,
-               visibility 0s linear 0s !important;
-  }
-
-  body.nav-closing nav.site-nav .nav-links{
-    visibility:visible !important;
-    opacity:0 !important;
-    pointer-events:none !important;
-    transform:translate3d(-105%,0,0) !important;
-    translate:none !important;
-    transition:transform .48s cubic-bezier(.33,0,.25,1),
-               opacity .18s ease,
-               visibility 0s linear .48s !important;
-  }
-
-  nav.site-nav .nav-links li{
-    transform:translate3d(-12px,0,0) !important;
-    translate:none !important;
-  }
-
-  body.nav-open nav.site-nav .nav-links li{
-    transform:translate3d(0,0,0) !important;
-    translate:none !important;
-  }
-
-  /* Scrim must be below both the sheet and the fixed header. */
-  .nav-scrim{
-    position:fixed !important;
-    inset:0 !important;
-    z-index:2990 !important;
-    display:block !important;
-    background:var(--nav-scrim) !important;
-  }
-
-  .nav-scrim[hidden]{
-    display:none !important;
-  }
-
-  body.nav-open .nav-scrim{
-    opacity:1 !important;
-    pointer-events:auto !important;
-  }
-
-  /* The lamp is also viewport-anchored. */
-  .bulb{
-    position:fixed !important;
-    z-index:3001 !important;
-  }
-
-  body.nav-open .bulb{
-    z-index:3001 !important;
-  }
-
-  body.nav-open .lamp-hint{
-    opacity:0 !important;
-    pointer-events:none !important;
-  }
-
-  /* The page must not horizontally shift when the drawer opens. */
-  html.nav-locked,
-  html.nav-locked body{
-    overflow:hidden !important;
-    width:100% !important;
-  }
-}
-
 </style>
 
 <style id="mobile-viewport-stability-fix">
@@ -3989,6 +3847,13 @@
 }
 
   @media (hover:none), (pointer:coarse){
+    /* Every intentional tap target opts out of double-tap gesture heuristics.
+       This is the shared fix; individual controls only define their action. */
+    .cv-envelope-lg,.archive-folder,.vinyl-scene,.icons a,#ctOpen,#cvDownload,
+    .gal-nav,.gal-dot,.book,.tw-keywell{
+      touch-action:manipulation;
+      -webkit-tap-highlight-color:transparent;
+    }
     /* Touch has no hover state. Do not merely override opacity after :hover;
        define the mobile resting state directly so Safari has nothing to paint. */
     .bk:not(.tap-armed) .book .tag{
@@ -4008,83 +3873,6 @@
     }
     .bk.tap-armed .book{
       transform:translateY(-3.4cqw) rotate(-4deg) scale(1.03) !important;
-    }
-  }
-
-
-  /* FINAL MOBILE NAV STABILITY FIX
-     Keep the mobile controls visually anchored with the old frosted band, and
-     use transform/visibility for the drawer so iOS Safari cannot leave only
-     the one-line menu icon and scrim visible. Desktop is untouched. */
-  @media (max-width:1149px){
-    nav.site-nav{
-      background:transparent !important;
-      box-shadow:none;
-      z-index:1000;
-    }
-    nav.site-nav.scrolled{
-      background:rgba(245,240,232,.80) !important;
-      -webkit-backdrop-filter:blur(10px);
-      backdrop-filter:blur(10px);
-      box-shadow:0 1px 0 rgba(44,33,26,.07);
-    }
-    body.night nav.site-nav.scrolled{
-      background:rgba(41,36,31,.80) !important;
-      box-shadow:0 1px 0 rgba(255,232,196,.07);
-    }
-
-    .nav-scrim{
-      z-index:900 !important;
-    }
-
-    .nav-links{
-      z-index:1100 !important;
-      opacity:1;
-      visibility:hidden;
-      translate:none !important;
-      transform:translate3d(-102%,0,0);
-      will-change:transform;
-      transition:transform var(--nav-exit) cubic-bezier(.4,0,.25,1),
-                 opacity .2s ease,
-                 visibility 0s linear var(--nav-exit);
-    }
-
-    body.nav-open.nav-shown .nav-links{
-      opacity:1 !important;
-      visibility:visible;
-      transform:translate3d(0,0,0);
-      transition:transform .62s cubic-bezier(.19,1,.28,1),
-                 opacity .2s ease,
-                 visibility 0s linear 0s;
-    }
-
-    body.nav-closing .nav-links{
-      opacity:0 !important;
-      visibility:visible;
-      transform:translate3d(-106%,0,0);
-      transition:transform var(--nav-exit) cubic-bezier(.33,0,.25,1),
-                 opacity calc(var(--nav-exit) - 40ms) ease-out,
-                 visibility 0s linear var(--nav-exit);
-    }
-
-    /* The menu rows use transform instead of the CSS translate longhand on
-       touch devices; this avoids Safari's intermittent compositing bug. */
-    .nav-links li{
-      transform:translate3d(-12px,0,0);
-      translate:none !important;
-    }
-    /* The drawer itself is the open-state source of truth. Do not require
-       nav-shown for the rows: on some touch browsers that class can arrive
-       a frame later than nav-open, leaving a perfectly visible paper sheet
-       with invisible links. */
-    body.nav-open .nav-links li{
-      opacity:1 !important;
-      transform:translate3d(0,0,0);
-      translate:none !important;
-    }
-    body.nav-closing .nav-links li{
-      transform:translate3d(-8px,0,0);
-      translate:none !important;
     }
   }
 </style>
@@ -4746,12 +4534,12 @@
   <div class="container">
     <div class="cv-section-inner reveal">
       <p class="cv-tagline">˗ˏˋ a little paper trail of my work ˎˊ˗</p>
-      <div class="cv-envelope-lg" id="cvEnvelope" role="button" tabindex="0" aria-label="Open envelope to reveal CV download">
+      <div class="cv-envelope-lg" id="cvEnvelope" role="button" tabindex="0" aria-label="Open envelope to reveal CV download" aria-expanded="false">
         <div class="cv-env-lg-body"></div>
         <p class="cv-note-text">a little note for you :)</p>
         <div class="cv-letter-lg">
           <p class="cv-my-cv">my CV<span class="heart">&#10140;</span></p>
-          <a class="cv-click" id="cvDownload" href="Vanya-Mohammed-CV.pdf" target="_blank" rel="noopener" download>click here to view / download</a>
+          <a class="cv-click" id="cvDownload" href="Vanya_Mohammed_CV.pdf" target="_blank" rel="noopener" download="Vanya_Mohammed_CV.pdf">click here to view / download</a>
         </div>
         <div class="cv-env-lg-flap"></div>
         <div class="cv-seal-lg"><div class="cv-seal-lg-flower"><span></span><span></span><span></span><span></span><span></span><i></i></div></div>
@@ -5130,12 +4918,9 @@
 
   const siteNav = document.getElementById('siteNav');
   if(siteNav){
-    var syncNavScrolled = function(){
-      siteNav.classList.toggle('scrolled', (window.scrollY || window.pageYOffset || 0) > 1);
-    };
-    window.addEventListener('scroll', syncNavScrolled, {passive:true});
-    window.addEventListener('pageshow', syncNavScrolled);
-    syncNavScrolled();
+    window.addEventListener('scroll', ()=>{
+      siteNav.classList.toggle('scrolled', window.scrollY > 20);
+    }, {passive:true});
   }
 
 
@@ -5156,9 +4941,29 @@
       SoundSystem.play('paper-rustle');
     }
   }
+  function bindSingleTouch(el, action){
+    if(!el) return;
+    var touchHandledUntil = 0;
+    el.addEventListener('pointerup', function(e){
+      if(e.pointerType !== 'touch') return;
+      e.preventDefault();
+      e.stopPropagation();
+      touchHandledUntil = Date.now() + 700;
+      action(e);
+    }, {passive:false});
+    el.addEventListener('click', function(e){
+      if(Date.now() < touchHandledUntil){
+        e.preventDefault();
+        e.stopPropagation();
+        return;
+      }
+      action(e);
+    });
+  }
+
   if(cvEnvelope){
-    cvEnvelope.addEventListener('click', function(e){
-      if(e.target.closest('#cvDownload')) return;   // only the link opens the PDF
+    bindSingleTouch(cvEnvelope, function(e){
+      if(e.target && e.target.closest && e.target.closest('#cvDownload')) return;
       toggleCvEnvelope();
     });
     cvEnvelope.addEventListener('keydown', function(e){
@@ -5182,7 +4987,7 @@
       // matched pair rather than a drawer opening and paper rustling shut
       SoundSystem.play(willOpen ? 'folder-open' : 'folder-close');
     }
-    folder.addEventListener('click', toggleFolder);
+    bindSingleTouch(folder, toggleFolder);
     folder.addEventListener('keydown', function(e){
       if(e.key === 'Enter' || e.key === ' '){
         e.preventDefault();
@@ -5300,14 +5105,36 @@
       try{ sessionStorage.setItem(HINT_KEY, '1'); }catch(e){}
     }
     shelfBooks.forEach(function(book){
-      book.addEventListener('click', function(e){
-        dismissHint();   // any real tap on a book means the affordance landed
-
+      var touchHandledUntil=0;
+      book.addEventListener('pointerup', function(e){
         var touchish = coarse || e.pointerType === 'touch';
-        if(!touchish) return;                        // desktop: nothing changes
-        if(armedBook === book){ disarm(); return; }   // second tap: let it through
+        if(!touchish) return;
         e.preventDefault();
+        e.stopPropagation();
+        touchHandledUntil=Date.now()+700;
+        dismissHint();
+        if(armedBook === book){
+          disarm();
+          // Project/archive books keep their established two-stage mobile
+          // affordance: the first tap reveals the tag; the second tap follows
+          // the actual link. This second activation is now handled directly
+          // from the touch event rather than waiting for Safari's synthetic click.
+          if(book.tagName === 'A' && book.href) {
+            if(book.target === '_blank') window.open(book.href,'_blank','noopener');
+            else window.location.href=book.href;
+          }
+          return;
+        }
         arm(book);
+      }, {passive:false});
+      book.addEventListener('click', function(e){
+        dismissHint();
+        if(Date.now()<touchHandledUntil){
+          e.preventDefault();
+          e.stopPropagation();
+          return;
+        }
+        if(coarse) return;
       });
     });
 
@@ -5516,7 +5343,7 @@
       }
       setVinylPlaying(!vinylScene.classList.contains('playing'));
     }
-    vinylScene.addEventListener('click', toggleVinyl);
+    bindSingleTouch(vinylScene, toggleVinyl);
     vinylScene.addEventListener('keydown', function(e){
       if(e.key === 'Enter' || e.key === ' '){
         e.preventDefault();
@@ -5524,6 +5351,33 @@
       }
     });
   }
+
+  // Native anchors normally handle touch correctly, but these links sit in
+  // animated/transform-heavy areas of the page. Give them the same explicit
+  // single-touch activation path so the first tap is never spent on a
+  // synthesized hover state. The desktop click path remains unchanged.
+  function bindTouchLink(el){
+    if(!el) return;
+    var handledUntil=0;
+    el.addEventListener('pointerup', function(e){
+      if(e.pointerType !== 'touch') return;
+      e.preventDefault();
+      e.stopPropagation();
+      handledUntil=Date.now()+700;
+      var href=el.getAttribute('href')||'';
+      if(!href) return;
+      if(href.indexOf('mailto:')===0){ window.location.href=href; return; }
+      if(el.target === '_blank') window.open(el.href,'_blank','noopener');
+      else window.location.href=el.href;
+    }, {passive:false});
+    el.addEventListener('click', function(e){
+      if(Date.now()<handledUntil){
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    });
+  }
+  document.querySelectorAll('.icons a, #ctOpen, #cvDownload').forEach(bindTouchLink);
 
   // typewriter — soft key click on tap, gently debounced
   const twKeywell = document.getElementById('twKeywell');
