@@ -2840,13 +2840,24 @@
       where the button's colour is decided.)
      ═════════════════════════════════════════════════════════════════════════ */
   @media(max-width:1149px){
-    /* the bar itself stays out of the way of the pointer; the band it paints
-       when scrolled is set with the rest of the mobile nav rules above */
-    nav.site-nav{background:none;pointer-events:none;}
+    /* Keep the hamburger/nav band floating with the lamp while the page moves.
+       It is fixed rather than sticky so a small scroll can never carry the
+       control out of the viewport. The blur only appears once the user has
+       moved off the very top, giving the lamp and menu the same soft glass
+       footing they had before without changing the page layout. */
+    nav.site-nav{position:fixed;top:0;left:0;right:0;width:100%;height:58px;
+      justify-content:flex-start;padding:0;z-index:210;background:transparent;
+      pointer-events:none;box-shadow:none;
+      transition:background .25s ease,box-shadow .25s ease,backdrop-filter .25s ease;
+      -webkit-backdrop-filter:blur(0);backdrop-filter:blur(0);}
+    .site-nav.scrolled{background:rgba(245,240,232,.72);
+      backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+      box-shadow:0 1px 0 rgba(44,33,26,.07);}
+    body.night .site-nav.scrolled{background:rgba(41,36,31,.72);
+      box-shadow:0 1px 0 rgba(255,232,196,.07);}
     .site-nav .clip-btn,.site-nav .nav-links,.nav-scrim{pointer-events:auto;}
-    /* the lamp keeps its corner and is never covered by the bar. It steps back
-       under the drawer while that is open, so the two never fight on a narrow
-       screen where the sheet reaches close to the right edge. */
+    /* The lamp sits above the frosted band, so its shade and glow stay crisp
+       while the area beneath it is softened. */
     .bulb{z-index:212;}
     body.nav-open .bulb{z-index:190;}
   }
@@ -5066,7 +5077,7 @@
   const siteNav = document.getElementById('siteNav');
   if(siteNav){
     window.addEventListener('scroll', ()=>{
-      siteNav.classList.toggle('scrolled', window.scrollY > 20);
+      siteNav.classList.toggle('scrolled', window.scrollY > 1);
     }, {passive:true});
   }
 
