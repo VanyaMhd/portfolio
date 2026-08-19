@@ -4034,6 +4034,146 @@
 }
 </style>
 
+
+<style id="touch-single-tap-v20">
+/*
+  V20: keep the V19 floating/blurred header exactly as-is, but make the
+  touch interaction layer deterministic. Some mobile browsers still retain
+  a synthesized :hover state even when the earlier touch rules are present.
+  On coarse/no-hover devices, interactive elements therefore explicitly keep
+  their resting visual state on :hover. Native click handlers remain the only
+  activation path, so one physical tap produces one action.
+*/
+@media (hover: none), (pointer: coarse){
+  .clip-btn:hover{color:var(--menu-ink)!important;opacity:1!important;background:none!important;}
+  .nav-links a:hover{color:var(--nav-ink)!important;opacity:.92!important;background:transparent!important;}
+
+  .btn:hover,
+  .btn:nth-of-type(even):hover{
+    transform:none!important;
+    box-shadow:inherit!important;
+  }
+  .btn:hover .ul,
+  .btn:hover .ul path{opacity:0!important;}
+
+  .follow .icons a:hover{
+    background:var(--paper)!important;
+    border-color:var(--taupe)!important;
+    color:var(--ink)!important;
+    transform:none!important;
+  }
+  body.night .follow .icons a:hover{
+    background:var(--paper)!important;
+    border-color:var(--taupe)!important;
+    color:var(--ink)!important;
+  }
+
+  .cv-envelope-lg:hover{transform:none!important;}
+  .cv-envelope-lg:hover .cv-env-lg-body{
+    box-shadow:0 22px 40px rgba(44,33,26,.15),
+               0 3px 8px rgba(44,33,26,.08),
+               inset 0 0 0 1px rgba(255,255,255,.15)!important;
+  }
+  .cv-letter-lg .cv-click:hover,
+  body.night .cv-letter-lg .cv-click:hover{
+    background:transparent!important;color:inherit!important;
+  }
+
+  .archive-folder:hover .archive-folder-visual{transform:none!important;}
+  .archive-folder:hover .archive-folder-hint{opacity:.65!important;color:var(--muted)!important;}
+  body.night .archive-folder.open:hover .archive-folder-hint{opacity:1!important;color:#D8B87A!important;}
+
+  .vinyl-scene:hover{transform:rotate(-3deg)!important;}
+  .gal-nav:hover{background:transparent!important;color:var(--muted)!important;}
+  body.night .gal-nav:hover{background:transparent!important;color:var(--muted)!important;}
+  .gal-dot:hover{opacity:.5!important;}
+  .gal-dot[aria-current="true"]:hover{opacity:1!important;}
+
+  .project:hover{box-shadow:5px 5px 0 rgba(44,36,32,.85)!important;}
+  .phone-col:hover,.laptop:hover{transform:none!important;}
+  .spread-case:hover,.jrnl-page:hover,.typewriter-wrap:hover .typewriter-paper{
+    translate:none!important;rotate:none!important;
+  }
+
+  /* Prevent the browser's touch highlight from becoming a second visual
+     state. This does not disable pinch zoom. */
+  .clip-btn,.nav-links a,.cv-envelope-lg,.cv-click,.archive-folder,
+  .vinyl-scene,.btn,.follow .icons a,.gal-nav,.gal-dot{
+    -webkit-tap-highlight-color:transparent;
+    touch-action:manipulation;
+  }
+}
+</style>
+
+<style id="touch-activation-v21">
+/* V21: unified touch activation.  iPadOS and touchscreen laptops can enter
+   desktop-layout mode while still delivering touch pointer events.  In that
+   mode CSS :hover and the browser's delayed/synthesized click can consume the
+   first touch.  Route a real touch pointerup through the site's EXISTING click
+   handlers exactly once, then suppress only the browser-generated follow-up
+   click.  Mouse/trackpad input is completely untouched. */
+@media (pointer: coarse){
+  .clip-btn,.nav-links a,.cv-envelope-lg,.cv-click,.archive-folder,
+  .vinyl-scene,.btn,.follow .icons a,.gal-nav,.gal-dot,a.book,
+  .journal-spread,.tw-keywell,.lamp-back,.bulb{
+    -webkit-tap-highlight-color:transparent;
+  }
+}
+</style>
+<script id="touch-activation-v21-script">
+(function(){
+  var suppressUntil = 0;
+  var suppressTarget = null;
+  var selector = [
+    '.clip-btn', '.nav-links a', '.cv-envelope-lg', '.cv-click',
+    '.archive-folder', '.vinyl-scene', '.btn', '.follow .icons a',
+    '.gal-nav', '.gal-dot', 'a.book', '.journal-spread', '.tw-keywell',
+    '.lamp-back', '.bulb'
+  ].join(',');
+
+  function isTouchPointer(e){
+    return e && (e.pointerType === 'touch' || e.pointerType === 'pen');
+  }
+
+  function interactiveFrom(target){
+    if(!target || target.nodeType !== 1) return null;
+    return target.closest(selector);
+  }
+
+  document.addEventListener('pointerup', function(e){
+    if(!isTouchPointer(e)) return;
+    var el = interactiveFrom(e.target);
+    if(!el) return;
+
+    /* Do not hijack a multi-touch gesture. */
+    if(e.isPrimary === false) return;
+
+    /* Let controls inside a scrollable menu behave normally; their existing
+       click handler will perform the navigation exactly once. */
+    e.preventDefault();
+    suppressTarget = el;
+    suppressUntil = Date.now() + 900;
+
+    /* Invoke the site's existing click handler. This preserves every existing
+       action/animation instead of duplicating the action logic here. */
+    el.click();
+  }, true);
+
+  document.addEventListener('click', function(e){
+    if(!suppressTarget || Date.now() > suppressUntil){
+      suppressTarget = null;
+      return;
+    }
+    var el = interactiveFrom(e.target);
+    if(el && (el === suppressTarget || el.contains(suppressTarget) || suppressTarget.contains(el))){
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      suppressTarget = null;
+    }
+  }, true);
+})();
+</script>
+
 </head>
 <body>
 <!-- ═════════ DARK MODE + BULB TOGGLE — START (delete to remove) ═════════ -->
