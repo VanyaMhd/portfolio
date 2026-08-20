@@ -4117,6 +4117,7 @@
   .vinyl-scene,.btn,.follow .icons a,.gal-nav,.gal-dot,a.book,
   .journal-spread,.tw-keywell,.lamp-back,.bulb{
     -webkit-tap-highlight-color:transparent;
+    touch-action:manipulation;
   }
 }
 </style>
@@ -4160,6 +4161,10 @@
   }, true);
 
   document.addEventListener('click', function(e){
+    /* el.click() above fires an untrusted synthetic click immediately.
+       That click is the intended activation and must NOT be suppressed.
+       Only suppress the trusted browser-generated follow-up click. */
+    if(e.isTrusted === false) return;
     if(!suppressTarget || Date.now() > suppressUntil){
       suppressTarget = null;
       return;
