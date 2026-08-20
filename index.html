@@ -4105,80 +4105,23 @@
 }
 </style>
 
-<style id="touch-activation-v21">
-/* V21: unified touch activation.  iPadOS and touchscreen laptops can enter
-   desktop-layout mode while still delivering touch pointer events.  In that
-   mode CSS :hover and the browser's delayed/synthesized click can consume the
-   first touch.  Route a real touch pointerup through the site's EXISTING click
-   handlers exactly once, then suppress only the browser-generated follow-up
-   click.  Mouse/trackpad input is completely untouched. */
-@media (pointer: coarse){
+
+
+
+<style id="touch-native-v23">
+/* V23: use the browser's native single-tap activation.
+   Do not synthesize clicks from pointerup: iPadOS and touchscreen laptops
+   already generate the correct click for a real tap. Synthetic activation
+   was the source of the recurring first-tap/double-tap race. */
+@media (pointer: coarse), (hover: none) {
   .clip-btn,.nav-links a,.cv-envelope-lg,.cv-click,.archive-folder,
   .vinyl-scene,.btn,.follow .icons a,.gal-nav,.gal-dot,a.book,
-  .journal-spread,.tw-keywell,.lamp-back,.bulb{
-    -webkit-tap-highlight-color:transparent;
-    touch-action:manipulation;
+  .journal-spread,.tw-keywell,.lamp-back,.bulb {
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
   }
 }
 </style>
-<script id="touch-activation-v21-script">
-(function(){
-  var suppressUntil = 0;
-  var suppressTarget = null;
-  var selector = [
-    '.clip-btn', '.nav-links a', '.cv-envelope-lg', '.cv-click',
-    '.archive-folder', '.vinyl-scene', '.btn', '.follow .icons a',
-    '.gal-nav', '.gal-dot', 'a.book', '.journal-spread', '.tw-keywell',
-    '.lamp-back', '.bulb'
-  ].join(',');
-
-  function isTouchPointer(e){
-    return e && (e.pointerType === 'touch' || e.pointerType === 'pen');
-  }
-
-  function interactiveFrom(target){
-    if(!target || target.nodeType !== 1) return null;
-    return target.closest(selector);
-  }
-
-  document.addEventListener('pointerup', function(e){
-    if(!isTouchPointer(e)) return;
-    var el = interactiveFrom(e.target);
-    if(!el) return;
-
-    /* Do not hijack a multi-touch gesture. */
-    if(e.isPrimary === false) return;
-
-    /* Let controls inside a scrollable menu behave normally; their existing
-       click handler will perform the navigation exactly once. */
-    e.preventDefault();
-    suppressTarget = el;
-    suppressUntil = Date.now() + 900;
-
-    /* Invoke the site's existing click handler. This preserves every existing
-       action/animation instead of duplicating the action logic here. */
-    el.click();
-  }, true);
-
-  document.addEventListener('click', function(e){
-    /* el.click() above fires an untrusted synthetic click immediately.
-       That click is the intended activation and must NOT be suppressed.
-       Only suppress the trusted browser-generated follow-up click. */
-    if(e.isTrusted === false) return;
-    if(!suppressTarget || Date.now() > suppressUntil){
-      suppressTarget = null;
-      return;
-    }
-    var el = interactiveFrom(e.target);
-    if(el && (el === suppressTarget || el.contains(suppressTarget) || suppressTarget.contains(el))){
-      e.preventDefault();
-      e.stopImmediatePropagation();
-      suppressTarget = null;
-    }
-  }, true);
-})();
-</script>
-
 </head>
 <body>
 <!-- ═════════ DARK MODE + BULB TOGGLE — START (delete to remove) ═════════ -->
