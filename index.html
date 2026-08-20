@@ -5881,5 +5881,33 @@
   }
 })();
 </script>
+<script id="social-links-single-tap-fix">
+/* SOCIAL LINKS — single activation only.
+   Keep the existing design and URLs exactly as they are. On touch browsers,
+   explicitly activate the three hero links from their own click so the
+   surrounding touch/navigation layers cannot leave the first tap in a
+   hover/focus state. Desktop behavior is preserved for modified clicks. */
+(function(){
+  document.querySelectorAll('.follow .icons a').forEach(function(link){
+    link.addEventListener('click', function(e){
+      if(e.defaultPrevented) return;
+      if(e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+
+      var href = link.getAttribute('href') || '';
+      if(!href) return;
+
+      e.preventDefault();
+      e.stopPropagation();
+
+      if(href.indexOf('mailto:') === 0){
+        window.location.href = href;
+        return;
+      }
+
+      window.open(href, '_blank', 'noopener,noreferrer');
+    });
+  });
+})();
+</script>
 </body>
 </html>
