@@ -431,6 +431,7 @@
      is the separation between the two groups. */
   /* a shared board is two equal halves, each centring its own group, so
      neither section reads as the other one's afterthought */
+  .shelf-zone.split{gap:0;}
   .shelf-zone.split > .shelf-half{width:50%;flex:none;}
   .shelf-half:first-child .shelf-tag{left:.6cqw;right:auto;}
   .shelf-half:last-child  .shelf-tag{right:.6cqw;left:auto;}
@@ -446,6 +447,13 @@
   .sk-des3{--c:#93A587;--d:#6E7F63;width:2.87cqw;height:12.61cqw;}
   .sk-des2{--c:#B8795C;--d:#8C5741;width:3.05cqw;height:13.41cqw;}
   .sk-mob1{--c:#9C7A5F;--d:#6F5540;width:3.05cqw;height:13.41cqw;}
+  .sk-mob2{--c:#93A587;--d:#6E7F63;width:2.87cqw;height:12.61cqw;}
+  .sk-mob3{--c:#B8795C;--d:#8C5741;width:3.05cqw;height:13.41cqw;}
+  .sk-back1{--c:#9C7A5F;--d:#6F5540;width:3.05cqw;height:13.41cqw;}
+  .sk-back2{--c:#93A587;--d:#6E7F63;width:2.87cqw;height:12.61cqw;}
+  .sk-back3{--c:#B8795C;--d:#8C5741;width:3.18cqw;height:14cqw;}
+  .sk-back4{--c:#EFE2CE;--d:#D2C0A4;width:2.96cqw;height:13.01cqw;}
+  .sk-back5{--c:#C08F8B;--d:#9A6A66;width:3.05cqw;height:13.41cqw;}
   /* ── the project still being made ─────────────────────────────────────────
      Same shelf, same hand, one shade short of finished: a pale unbound spine
      among the bound ones, with a ribbon still marking someone's place in it.
@@ -4062,6 +4070,23 @@
     color:var(--ink)!important;
     transform:none!important;
   }
+
+  /* Keep the existing desktop hover look available as the immediate press
+     feedback on touch devices, without changing navigation or tap behavior. */
+  .follow .icons a:active,
+  .follow .icons a:focus-visible{
+    background:var(--pink)!important;
+    border-color:var(--pink)!important;
+    color:#FBF5EC!important;
+    transform:translateY(-2px)!important;
+  }
+  body.night .follow .icons a:active,
+  body.night .follow .icons a:focus-visible{
+    background:var(--ink)!important;
+    border-color:var(--ink)!important;
+    color:var(--cream)!important;
+    transform:translateY(-2px)!important;
+  }
   body.night .follow .icons a:hover{
     background:var(--paper)!important;
     border-color:var(--taupe)!important;
@@ -4089,7 +4114,7 @@
   .gal-dot:hover{opacity:.5!important;}
   .gal-dot[aria-current="true"]:hover{opacity:1!important;}
 
-  .project:hover{box-shadow:5px 5px 0 rgba(44,36,32,.85)!important;}
+  
   .phone-col:hover,.laptop:hover{transform:none!important;}
   .spread-case:hover,.jrnl-page:hover,.typewriter-wrap:hover .typewriter-paper{
     translate:none!important;rotate:none!important;
@@ -4120,6 +4145,89 @@
     -webkit-tap-highlight-color: transparent;
     touch-action: manipulation;
   }
+}
+<style id="touch-single-activation-v31">
+/* V31: touch/iPad interaction guard.
+   Keep native click as the only activation path. On coarse/no-hover devices,
+   prevent hover-only visual states from becoming a first-tap state. This does
+   not synthesize clicks and does not alter the desktop interaction model. */
+@media (hover: none), (pointer: coarse){
+  .btn,
+  .cv-envelope-lg,
+  .cv-click,
+  .archive-folder,
+  .vinyl-scene,
+  .gal-nav,
+  .gal-dot,
+  .follow .icons a,
+  .clip-btn,
+  .nav-links a,
+  .journal-spread,
+  .tw-keywell,
+  .lamp-back,
+  .bulb {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    touch-action: manipulation;
+  }
+
+  /* The browser should never need a preliminary tap just to enter a hover
+     state on these controls. Their existing :active/focus feedback remains. */
+  .btn:hover,
+  .cv-envelope-lg:hover,
+  .archive-folder:hover .archive-folder-visual,
+  .vinyl-scene:hover,
+  .gal-nav:hover,
+  .gal-dot:hover,
+  .follow .icons a:hover,
+  .clip-btn:hover,
+  .nav-links a:hover {
+    transition: none !important;
+  }
+}
+</style>
+</style>
+
+<style id="v33-backend-label-alignment">
+/* V33: align the Backend & Database label with the left edge of its first book.
+   The books remain centered in the right half; only the label's horizontal
+   anchor changes. No desktop/mobile interaction behavior is changed. */
+.shelf-zone.split > .shelf-half:last-child .shelf-tag{
+  left:calc(50% - 9.455cqw);
+  right:auto;
+}
+
+/* Keep the existing native one-tap model on coarse/no-hover devices.
+   touch-action:manipulation preserves pinch-to-zoom while removing the
+   browser's tap-delay/double-tap ambiguity for these existing controls. */
+@media (hover:none), (pointer:coarse){
+  .clip-btn,
+  .nav-links a,
+  .btn,
+  .cv-envelope-lg,
+  .cv-click,
+  .archive-folder,
+  .vinyl-scene,
+  .gal-nav,
+  .gal-dot,
+  .follow .icons a,
+  .bulb,
+  .tw-keywell,
+  .lamp-back,
+  .journal-spread{
+    touch-action:manipulation;
+    -webkit-tap-highlight-color:transparent;
+    -webkit-touch-callout:none;
+  }
+}
+</style>
+<style id="v34-mobile-label-alignment">
+/* V34: align the first Mobile Development book with the left edge of its label.
+   Backend & Database is intentionally left unchanged. */
+.shelf-zone.split > .shelf-half:first-child{
+  justify-content:flex-start;
+  padding-left:2cqw;
+  box-sizing:border-box;
 }
 </style>
 </head>
@@ -4377,16 +4485,20 @@
       </div>
 
       <div class="shelf-zone split" style="top:51.22%;height:14.52%;">
-          <div class="shelf-half">
-            <span class="shelf-tag">ui/ux design</span>
-            <span class="bk"><div class="book sk-des6" style="--acc:#E3C68C"><i class="cap h"></i><i class="cap t"></i><i class="band h"></i><i class="band t"></i><i class="pg"></i><i class="ridge" style="top:26%"></i><i class="ridge" style="top:60%"></i><i class="rule" style="top:42%"></i><i class="worn a"></i><i class="worn b"></i><div class="tag">Design Systems</div></div></span>
-            <span class="bk"><div class="book sk-des3" style="--r:1.5px"><i class="cap h"></i><i class="cap t"></i><i class="band h"></i><i class="band t"></i><i class="pg"></i><i class="rule" style="top:26%"></i><div class="tag">Wireframing &amp; Prototyping</div></div></span>
-            <span class="bk"><div class="book sk-des2"><i class="cap h"></i><i class="cap t"></i><i class="band h"></i><i class="band t"></i><i class="pg"></i><i class="ridge" style="top:24%"></i><i class="ridge" style="top:56%"></i><i class="lbl"></i><i class="worn a"></i><i class="worn b"></i><div class="tag">Interaction Design</div></div></span>
-          </div>
-          <div class="shelf-half">
-            <span class="shelf-tag">mobile development</span>
-            <span class="bk"><div class="book sk-mob1" style="--acc:#E3C68C"><i class="cap h"></i><i class="cap t"></i><i class="band h"></i><i class="band t"></i><i class="pg"></i><i class="ridge" style="top:26%"></i><i class="ridge" style="top:60%"></i><i class="rule" style="top:42%"></i><i class="worn a"></i><i class="worn b"></i><div class="tag">Flutter</div></div></span>
-          </div>
+        <div class="shelf-half">
+          <span class="shelf-tag">mobile development</span>
+          <span class="bk"><div class="book sk-mob1" style="--acc:#E3C68C"><i class="cap h"></i><i class="cap t"></i><i class="band h"></i><i class="band t"></i><i class="pg"></i><i class="ridge" style="top:26%"></i><i class="ridge" style="top:60%"></i><i class="rule" style="top:42%"></i><i class="worn a"></i><i class="worn b"></i><div class="tag">Flutter</div></div></span>
+          <span class="bk"><div class="book sk-mob2" style="--r:1.5px"><i class="cap h"></i><i class="cap t"></i><i class="band h"></i><i class="band t"></i><i class="pg"></i><i class="rule" style="top:26%"></i><div class="tag">React Native</div></div></span>
+          <span class="bk"><div class="book sk-mob3"><i class="cap h"></i><i class="cap t"></i><i class="band h"></i><i class="band t"></i><i class="pg"></i><i class="ridge" style="top:24%"></i><i class="ridge" style="top:56%"></i><i class="lbl"></i><i class="worn a"></i><i class="worn b"></i><div class="tag">SwiftUI</div></div></span>
+        </div>
+        <div class="shelf-half">
+          <span class="shelf-tag">Backend &amp; Database</span>
+          <span class="bk"><div class="book sk-back1" style="--acc:#E3C68C"><i class="cap h"></i><i class="cap t"></i><i class="band h"></i><i class="band t"></i><i class="pg"></i><i class="ridge" style="top:26%"></i><i class="ridge" style="top:60%"></i><i class="rule" style="top:42%"></i><i class="worn a"></i><i class="worn b"></i><div class="tag">Node.js</div></div></span>
+          <span class="bk"><div class="book sk-back2" style="--r:1.5px"><i class="cap h"></i><i class="cap t"></i><i class="band h"></i><i class="band t"></i><i class="pg"></i><i class="rule" style="top:26%"></i><div class="tag">MySQL</div></div></span>
+          <span class="bk"><div class="book sk-back3"><i class="cap h"></i><i class="cap t"></i><i class="band h"></i><i class="band t"></i><i class="pg"></i><i class="ridge" style="top:24%"></i><i class="ridge" style="top:56%"></i><i class="lbl"></i><i class="worn a"></i><i class="worn b"></i><div class="tag">Firebase</div></div></span>
+          <span class="bk"><div class="book sk-back4 soft tex"><div class="tag">Firestore</div></div></span>
+          <span class="bk"><div class="book sk-back5" style="--r:1.5px"><i class="cap h"></i><i class="cap t"></i><i class="band h"></i><i class="band t"></i><i class="pg"></i><i class="foil" style="top:27%"></i><div class="tag">Supabase</div></div></span>
+        </div>
       </div>
 
       <div class="shelf-zone" style="top:68.52%;height:13.65%;">
@@ -4785,7 +4897,7 @@
         <p class="cv-note-text">a little note for you :)</p>
         <div class="cv-letter-lg">
           <p class="cv-my-cv">my CV<span class="heart">&#10140;</span></p>
-          <a class="cv-click" id="cvDownload" href="Vanya-Mohammed-CV.pdf" target="_blank" rel="noopener" download>click here to view / download</a>
+          <a class="cv-click" id="cvDownload" href="./Vanya_Mohammed_CV.pdf" target="_blank" rel="noopener" download>click here to view / download</a>
         </div>
         <div class="cv-env-lg-flap"></div>
         <div class="cv-seal-lg"><div class="cv-seal-lg-flower"><span></span><span></span><span></span><span></span><span></span><i></i></div></div>
